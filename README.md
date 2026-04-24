@@ -1,4 +1,4 @@
-# Kiyora
+# Kiyora Data Analysis Pipeline
 
 **AIE323 Self-Learning Assignment**
 
@@ -8,17 +8,24 @@
 - **กำหนดส่ง:** 27 เมษายน 2569
 - **รายวิชา:** AIE323 
 - **ตัวแปรเป้าหมาย (Target Variable):** `brand_primary` (แบรนด์คลีนซิ่งที่ผู้ใช้งานใช้บ่อยที่สุด)
-- **เทคนิคที่ใช้หลัก:** `RandomForestClassifier` (ใช้ในการทำ Imputation ถมรอยโหว่ของข้อมูลและทำนายผล) พร้อมด้วยเทคนิค Feature Encoding เชิงลึก
+- **เทคนิคที่ใช้หลัก:** `RandomForestClassifier` (ใช้ในการทำ Imputation ถมรอยโหว่ของข้อมูลและทำนายผล) พร้อมด้วยเทคนิค Feature Encoding เชิงลึก และสถิติวิเคราะห์ (Correlation)
 
-## 📁 โครงสร้างโปรเจกต์ (Project Structure)
+## โครงสร้างโปรเจกต์ (Project Structure)
 ```text
 final_pj_Kiyora/
 ├── README.md                         # ข้อมูลภาพรวมของโปรเจกต์
 ├── AIE323_Self_Learning_Analysis.md  # แผนการทำงานและรายละเอียด Todo-list เพื่อส่งอาจารย์
+├── docs/
+│   └── target_definition.md          # เอกสารอธิบายเหตุผลการเลือก Target Variable
 ├── data/
 │   ├── dataset_cleansing.csv         # ข้อมูลดิบตั้งต้นที่ได้จากการเก็บแบบสอบถาม
-│   ├── dataset_prepared.csv          # ข้อมูลที่ผ่านการคลีน พร้อมใช้รันโมเดล (ML-Ready)
-│   └── data_prep.py                  # สคริปต์หลักสำหรับ Data Cleaning และ Feature Engineering
+│   ├── dataset_prepared.csv          # ข้อมูลที่ผ่านการคลีนเบื้องต้น
+│   ├── dataset_extended_prepared.csv # ข้อมูลที่ผ่านการคลีนและทำ Feature Engineering ฉบับสมบูรณ์
+│   ├── data_prep.py                  # สคริปต์หลักสำหรับ Data Cleaning
+│   └── data_prep_extended.py         # สคริปต์เตรียมข้อมูลฉบับสมบูรณ์พร้อม Feature Selection
+├── visualization/
+│   ├── viz_analysis.py               # สคริปต์สำหรับพล็อตกราฟและ Data Visualization
+│   └── plots/                        # โฟลเดอร์เก็บรูปภาพกราฟผลลัพธ์
 ├── model/
 │   ├── sup.py                        # Supervised Learning Models
 │   └── unsup.py                      # Unsupervised Learning Models
@@ -27,20 +34,29 @@ final_pj_Kiyora/
 └── deploy/                           # Deployment scripts & configs
 ```
 
-## ฟีเจอร์หลักในการเตรียมข้อมูล (Data Pipeline Features)
+## ฟีเจอร์หลักในการเตรียมข้อมูลและการวิเคราะห์ (Data Pipeline Features)
 - **Data Cleaning & Missing Value Handling:** จัดการตัวแปรและข้อมูลคำตอบที่ตกหล่น รวมถึงการแทนค่า `0` ให้กับกลุ่มคนที่ไม่ได้ใช้งานคลีนซิ่งเพื่อให้การวิเคราะห์แม่นยำขึ้น
-- **In-place Feature Engineering:** สคริปต์สามารถแปลงข้อมูลคำตอบทางสถิติของฟีเจอร์หลัก (`age`, `monthly_income`, `acne_level`, `skin_type`) ให้กลายเป็นตัวเลข (Ordinal & Label Encoding) โดยที่**ยังคงรักษาชื่อคอลัมน์และลำดับของโครงสร้างตารางเอาไว้ 100%**
-- **Automated Missing Data Prediction:** สามารถพยากรณ์และทายผลของคนที่ตอบค่าเป้าหมาย (`brand_primary`) ไว้ว่าเป็นค่าว่างได้สำเร็จ 
+- **In-place Feature Engineering:** สคริปต์สามารถแปลงข้อมูลคำตอบทางสถิติของฟีเจอร์หลักให้กลายเป็นตัวเลข (Ordinal & Label Encoding) และแยกคำตอบแบบเลือกได้หลายข้อ (Multiple Responses) ให้อยู่ในรูปแบบ One-Hot Encoding
+- **Automated Missing Data Prediction:** สามารถพยากรณ์และทายผลของคนที่ตอบค่าเป้าหมาย (`brand_primary`) ไว้ว่าเป็นค่าว่างได้สำเร็จ โดยใช้ Random Forest
+- **Data Visualization & Insights:** สร้างกราฟวิเคราะห์ประชากรศาสตร์ (Demographics), สัดส่วนแบรนด์หลัก, และระดับความสำคัญของคุณสมบัติคลีนซิ่ง พร้อมทั้งสร้างแผนภาพความสัมพันธ์ (Correlation Heatmap) ระหว่างฟีเจอร์ต่างๆ และตัวแปรเป้าหมาย
 
 ## วิธีการใช้งาน (How to Run)
 
-1. รันไฟล์เพื่อเตรียมข้อมูล คลีน และเข้ารหัสข้อมูล (Data Preparation):
+1. **ติดตั้งไลบรารีที่จำเป็น:**
+```bash
+pip install -r requiment.txt
+```
+
+2. **รันไฟล์เพื่อเตรียมข้อมูล คลีน และเข้ารหัสข้อมูล (Data Preparation):**
 ```bash
 cd data
-python3 data_prep.py
+python3 data_prep_extended.py
 ```
-2. ไฟล์ `dataset_prepared.csv` ซึ่งสมบูรณ์และไม่มีปัญหาการประมวลผล (ไม่มีค่า Null/Error ใน features หลัก) จะถูกเซฟออกมาโดยอัตโนมัติ 
+*(ไฟล์ `dataset_extended_prepared.csv` จะถูกสร้างขึ้นมาใน Root Directory)*
 
-## แผนงานต่อไปเพื่อส่งอาจารย์ (Next Steps)
-- ทำ **Data Visualization** (พล็อตกราฟ Demographic Profiles, Distribution Analysis, รัน Correlation Heatmap หาตัวแปรเสริม)
-- จัดพิมพ์ **Documentation / Presentation** ขยายความถึงที่มาการเลือกตัวแปรเป้าหมาย
+3. **รันไฟล์เพื่อสร้าง Data Visualization:**
+```bash
+cd ../visualization
+python3 viz_analysis.py
+```
+*(รูปภาพกราฟทั้งหมดจะถูกบันทึกในโฟลเดอร์ `visualization/plots/`)*
