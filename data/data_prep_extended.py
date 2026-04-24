@@ -4,8 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import mutual_info_classif
 
-print("1. Loading and renaming data...")
-data = pd.read_csv('../dataset_cleansing.csv')
+data = pd.read_csv('/dataset_cleansing.csv')
 
 # Rename columns
 rename_map = {
