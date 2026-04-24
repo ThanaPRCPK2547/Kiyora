@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
 
 data = pd.read_csv('dataset_cleansing.csv')
 print(data.head())
@@ -39,6 +40,24 @@ rename_map = {
 }
 data.rename(columns=rename_map, inplace=True)
 
+# จัดการ Missing Values จำนวน 47 rows (กลุ่มคนที่ไม่ได้ใช้คลีนซิ่ง)
+# กลุ่มคอลัมน์ให้คะแนน ปัจจัยต่างๆ (factor_...) เติม 0
+factor_cols = [
+    'factor_deep_cleansing', 'factor_acne_friendly', 'factor_sensitive_friendly',
+    'factor_hypoallergenic', 'factor_moisturizing', 'factor_low_friction',
+    'factor_nourishment', 'factor_eye_friendly', 'factor_oil_control'
+]
+for col in factor_cols:
+    data[col].fillna(0, inplace=True)
+
+# กลุ่มคอลัมน์ข้อความพฤติกรรมการใช้ ให้เติมเป็น 0
+cat_missing_cols = [
+    'cleansing_types_used', 'cleansing_type_primary', 'cleansing_water_formula',
+    'switch_factors', 'brands_used'
+]
+for col in cat_missing_cols:
+    data[col].fillna(0, inplace=True)
+
 # ทำ prep data
 def data_preparation(data):
     dummy = pd.get_dummies(data['gender'])
@@ -56,7 +75,9 @@ data = data.drop(['Timestamp', 'province', 'occupation', 'factor_no_allergen'], 
 
 print(data.head(5))
 
+#กำหนดคอลัมน์ที่ใช้เป็นฟีเจอร์และเป้าหมาย
 feature_cols = ['gender_male', 'gender_female', 'age', 'monthly_income', 'skin_type', 'acne_level']
+#กำหนดคอลัมน์เป้าหมาย
 target_col = 'brand_primary'
 
 train_df = data[(data['uses_cleansing_water'] == True) & (data[target_col].notna())].copy()
@@ -78,3 +99,39 @@ print(data.loc[pred_df.index, target_col].head())
 print("\nFinal columns:")
 print(data.columns.tolist())
 print(data.head())
+print(data.info())
+
+# ทำ Ordinal Encoding (แปลง Text เป็นตัวเลขตามลำดับ) เฉพาะคอลัมน์ใน feature_cols
+age_map = {
+    'ต่ำกว่า 18 ปี': 1, '18-22 ปี': 2, '23-28 ปี': 3, '29-34 ปี': 4, '35 ปี ขึ้นไป': 5
+}
+income_map = {
+    'ต่ำกว่า 10,000 บาท': 1, '10,001 - 14,999 บาท': 2, '15,000 - 19,999 บาท': 3,
+    '20,000 - 24,999 บาท': 4, '25,000 - 29,999 บาท': 5, '30,000 - 34,999 บาท': 6,
+    '35,000 - 39,999 บาท': 7, '40,000 บาท ขึ้นไป': 8
+}
+acne_map = {
+    'ไม่มีสิวเลย': 0,
+    'นานๆทีเป็นสิว เช่น มีสิวเฉพาะช่วงมีประจำเดือน, พักผ่อนน้อย': 1,
+    'สิวเล็กน้อย (ส่วนใหญ่เป็นสิวอุดตัน เป็นสิวอักเสบ/หัวหนองไม่เกิน 10เม็ด)': 2,
+    'สิวปานกลาง (เป็นสิวอักเสบ/หัวหนองมากกว่า10เม็ด)': 3,
+    'สิวรุนแรง (มีสิวทุกประเภทร่วมกันเป็นกลุ่มก้อน อักเสบนาน และมีหนองไหล)': 4
+}
+
+data['age'] = data['age'].map(age_map)
+data['monthly_income'] = data['monthly_income'].map(income_map)
+data['acne_level'] = data['acne_level'].map(acne_map)
+
+# ทำ Label Encoding สำหรับ Categorical variables ใน feature_cols
+label_cols = ['skin_type']
+le = LabelEncoder()
+for col in label_cols:
+    if col in data.columns:
+        # เพื่อความปลอดภัย จัดการให้เป็นประเภท string ทั้งหมดก่อน
+        data[col] = data[col].astype(str)
+        data[col] = le.fit_transform(data[col])
+
+# export data set
+print(data.info())
+print(data.isnull().sum())
+print(data.to_csv('dataset_prepared.csv', index=False))
