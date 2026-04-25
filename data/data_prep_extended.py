@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import mutual_info_classif
 
-data = pd.read_csv('/dataset_cleansing.csv')
+data = pd.read_csv('dataset_cleansing.csv')
 
 # เปลี่ยนชื่อคอลัมน์
 rename_map = {
@@ -138,4 +138,4 @@ le_skin = LabelEncoder()
 data['skin_type_encoded'] = le_skin.fit_transform(data['skin_type'].astype(str))
 
 # Save prepared dataset
-data.to_csv('/dataset_extended_prepared.csv', index=False)
+data.to_csv('dataset_extended_prepared.csv', index=False)
