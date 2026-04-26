@@ -75,3 +75,6 @@ kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
 data['cluster'] = kmeans.fit_predict(X_scaled)
 
 print(data['cluster'].value_counts())
+
+cluster_profile = data.groupby('cluster')[cluster_features].mean().round(2)
+print(cluster_profile)
