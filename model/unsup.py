@@ -76,5 +76,21 @@ data['cluster'] = kmeans.fit_predict(X_scaled)
 
 print(data['cluster'].value_counts())
 
+
 cluster_profile = data.groupby('cluster')[cluster_features].mean().round(2)
 print(cluster_profile)
+
+#เเบ่ง กลุ่มลูกค้าเป็น 4 กลุ่มตาม cluster ที่ได้จาก KMeans
+#Cluster 0 = Young Passive Buyers (วัยรุ่นงบน้อย ซื้อแบบง่าย ๆ)
+#Cluster 1 = Young Active Skincare Seekers(คนรุ่นใหม่ สนใจ skincare จริง)
+#Cluster 2 = Premium Rational Buyers(ซื้อเพราะคุณภาพ ไม่ใช่ราคาถูก)
+#Cluster 3 = Mature Habit Buyers(อายุมาก ซื้อจากความเคยชิน)
+
+#ดูข้อมูลเเต่ละ brand/cluster
+brand_cluster = pd.crosstab(
+    data['cluster'],
+    data['brand_primary'],
+    normalize='index'
+).round(3)
+
+print(brand_cluster.to_string())
