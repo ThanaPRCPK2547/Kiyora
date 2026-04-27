@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import mutual_info_classif
 
-data = pd.read_csv('/dataset_cleansing.csv')
+data = pd.read_csv('dataset_cleansing.csv')
 
 # เปลี่ยนชื่อคอลัมน์
 rename_map = {
@@ -87,8 +87,16 @@ data['acne_level_encoded'] = data['acne_level'].map(acne_map)
 
 # ทำ One-Hot Encoding สำหรับเพศและการใช้คลีนซิ่งวอเตอร์
 dummy_gender = pd.get_dummies(data['gender'])
-if len(dummy_gender.columns) == 2:
-    dummy_gender.columns = ['gender_female', 'gender_male']
+gender_column_map = {}
+for col in dummy_gender.columns:
+    col_str = str(col).strip()
+    if col_str == 'หญิง':
+        gender_column_map[col] = 'gender_female'
+    elif col_str == 'ชาย':
+        gender_column_map[col] = 'gender_male'
+    else:
+        gender_column_map[col] = f"gender_{col_str}"
+dummy_gender.rename(columns=gender_column_map, inplace=True)
 data = pd.concat([data, dummy_gender], axis=1)
 
 dummy_cw = pd.get_dummies(data['uses_cleansing_water_raw'])
@@ -138,4 +146,4 @@ le_skin = LabelEncoder()
 data['skin_type_encoded'] = le_skin.fit_transform(data['skin_type'].astype(str))
 
 # Save prepared dataset
-data.to_csv('/dataset_extended_prepared.csv', index=False)
+data.to_csv('dataset_extended_prepared.csv', index=False)

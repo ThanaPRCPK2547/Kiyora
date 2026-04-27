@@ -2,22 +2,60 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 # Thai font support
 plt.rcParams['font.family'] = 'Tahoma'
 
+
 # โหลดข้อมูล
 data = pd.read_csv('dataset_extended_prepared.csv')
+
+
+numeric_cols = data.select_dtypes(include='number').columns.tolist()
+X_train, X_test, y_train, y_test = train_test_split(
+    data[numeric_cols],
+    data['brand_primary'],
+    test_size=0.2,
+    random_state=42
+)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+lr = LogisticRegression()
+lr.fit(X_train, y_train)
+y_pred = lr.predict(X_test)
+y_pred_proba = lr.predict_proba(X_test)
+
+# แสดงผลลัพธ์
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
+
 
 # Part 1: Demographic Profile
 # เพศ (Gender)
 plt.figure(figsize=(8, 5))
-if 'gender_female' in data.columns and 'gender_male' in data.columns:
+if 'gender' in data.columns:
+    raw_gender_counts = data['gender'].fillna('Unknown').astype(str).str.strip().value_counts()
+    gender_counts = {
+        'Female': raw_gender_counts.get('หญิง', 0),
+        'Male': raw_gender_counts.get('ชาย', 0),
+    }
+elif 'gender_female' in data.columns and 'gender_male' in data.columns:
     gender_counts = {'Female': data['gender_female'].sum(), 'Male': data['gender_male'].sum()}
+else:
+    gender_counts = None
+
+if gender_counts is not None:
     x_keys = list(gender_counts.keys())
     sns.barplot(x=x_keys, y=list(gender_counts.values()), hue=x_keys, palette='pastel', legend=False)
     plt.title('Distribution of Gender (การกระจายตัวของเพศ)')
+    plt.xlabel('Gender (เพศ)')
     plt.ylabel('Count (จำนวน)')
     plt.show()
 
@@ -27,6 +65,7 @@ age_labels = ['< 18', '18-22', '23-28', '29-34', '35+']
 age_counts = data['age_encoded'].value_counts().sort_index()
 sns.barplot(x=age_labels, y=age_counts.values, hue=age_labels, palette='Blues_d', legend=False)
 plt.title('Distribution of Age Groups (การกระจายตัวของช่วงอายุ)')
+plt.xlabel('Age Group (ช่วงอายุ)')
 plt.ylabel('Count (จำนวน)')
 plt.show()
 
