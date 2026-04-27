@@ -1,10 +1,3 @@
-"""
-AIE323 - Kiyora Clean Supervised Learning: Binary Classification
-Target : target_kiyora (1 = uses Kiyora, 0 = uses other brands)
-Models : Logistic Regression, Random Forest, SVM, KNN, Decision Tree
-Handle imbalance via SMOTE-lite + class_weight='balanced'
-"""
-
 import sys
 import warnings
 from pathlib import Path
@@ -77,20 +70,20 @@ FEATURE_COLS = [
     "province_encoded",
     "gender_female",
     "prob_uneven skintone",
-    "prob_à¸œà¸´à¸§à¸¡à¸±à¸™à¹€à¸¢à¸´à¹‰à¸¡",
-    "prob_à¸œà¸´à¸§à¸«à¸¡à¸­à¸‡à¸„à¸¥à¹‰à¸³",
-    "prob_à¸œà¸´à¸§à¹à¸žà¹‰à¸‡à¹ˆà¸²à¸¢",
-    "prob_à¸œà¸´à¸§à¹à¸«à¹‰à¸‡/à¸¥à¸­à¸/à¹€à¸›à¹‡à¸™à¸‚à¸¸à¸¢",
-    "prob_à¸à¹‰à¸² à¸à¸£à¸°",
-    "prob_à¸£à¸­à¸¢à¸ªà¸´à¸§",
-    "prob_à¸£à¸´à¹‰à¸§à¸£à¸­à¸¢",
-    "prob_à¸£à¸¹à¸‚à¸¸à¸¡à¸‚à¸™à¸à¸§à¹‰à¸²à¸‡",
-    "prob_à¸ªà¸´à¸§à¸œà¸”",
-    "prob_à¸ªà¸´à¸§à¸­à¸±à¸à¹€à¸ªà¸š",
-    "prob_à¸ªà¸´à¸§à¸­à¸¸à¸”à¸•à¸±à¸™",
-    "prob_à¸ªà¸´à¸§à¹€à¸ªà¸µà¹‰à¸¢à¸™",
-    "prob_à¸«à¸¥à¸¸à¸¡à¸ªà¸´à¸§",
-    "prob_à¹„à¸¡à¹ˆà¸¡à¸µà¸›à¸±à¸à¸«à¸²à¸œà¸´à¸§",
+    "prob_ผิวมันเยิ้ม",
+    "prob_ผิวหมองคล้ำ",
+    "prob_ผิวแพ้ง่าย",
+    "prob_ผิวแห้ง/ลอก/เป็นขุย",
+    "prob_ฝ้า กระ",
+    "prob_รอยสิว",
+    "prob_ริ้วรอย",
+    "prob_รูขุมขนกว้าง",
+    "prob_สิวผด",
+    "prob_สิวอักเสบ",
+    "prob_สิวอุดตัน",
+    "prob_สิวเสี้ยน",
+    "prob_หลุมสิว",
+    "prob_ไม่มีปัญหาผิว",
     "occ_Gov_Employee",
     "occ_Other",
     "occ_Private_Employee",
@@ -104,10 +97,7 @@ y = df["target_kiyora"].values
 print(f"Dataset: {len(y)} samples  |  Kiyora={y.sum()}  Others={(y==0).sum()}")
 print(f"Features: {len(FEATURE_COLS)}\n")
 
-
-# ==============================================================================
 # 2. HANDLE IMBALANCE - SMOTE-lite (manual oversampling)
-# ==============================================================================
 def smote_lite(X, y, random_state=42):
     rng = np.random.RandomState(random_state)
     X_min = X[y == 1]
@@ -126,18 +116,14 @@ X_bal, y_bal = smote_lite(X, y)
 print(f"After SMOTE-lite - Class 0: {(y_bal==0).sum()}  Class 1: {(y_bal==1).sum()}")
 
 
-# ==============================================================================
 # 3. TRAIN / TEST SPLIT  (stratified, test on balanced data)
-# ==============================================================================
 X_train, X_test, y_train, y_test = train_test_split(
     X_bal, y_bal, test_size=0.2, random_state=42, stratify=y_bal
 )
 print(f"Train: {len(y_train)}  |  Test: {len(y_test)}\n")
 
 
-# ==============================================================================
 # 4. DEFINE MODELS
-# ==============================================================================
 models = {
     "Logistic Regression": LogisticRegression(class_weight="balanced", max_iter=500, random_state=42),
     "Random Forest": RandomForestClassifier(n_estimators=200, class_weight="balanced", random_state=42),
@@ -146,10 +132,7 @@ models = {
     "Decision Tree": DecisionTreeClassifier(max_depth=4, class_weight="balanced", random_state=42),
 }
 
-
-# ==============================================================================
 # 5. TRAIN, CROSS-VALIDATE & EVALUATE
-# ==============================================================================
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 results = {}
 
@@ -188,9 +171,7 @@ for name, clf in models.items():
 print("=" * 65)
 
 
-# ==============================================================================
 # 6. BEST MODEL REPORT
-# ==============================================================================
 best_name = max(results, key=lambda k: results[k]["cv_f1"])
 best = results[best_name]
 
@@ -206,10 +187,7 @@ print("                Predicted Other  Predicted Kiyora")
 print(f"Actual Other         {cm[0,0]:>4}              {cm[0,1]:>4}")
 print(f"Actual Kiyora        {cm[1,0]:>4}              {cm[1,1]:>4}")
 
-
-# ==============================================================================
 # 7. FEATURE IMPORTANCE (Random Forest)
-# ==============================================================================
 rf_pipe = results["Random Forest"]["pipe"]
 rf_clf = rf_pipe.named_steps["clf"]
 fi = pd.DataFrame({"feature": FEATURE_COLS, "importance": rf_clf.feature_importances_}).sort_values(
