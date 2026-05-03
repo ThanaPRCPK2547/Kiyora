@@ -101,9 +101,7 @@ print(brand_cluster.to_string())
 # MODEL 2 : KIYORA USER SEGMENTATION
 # =====================================================
 
-
 # Filter เฉพาะคนที่ใช้ Kiyora
-
 
 kiyora_df = data[
     data["brand_primary"].astype(str).str.contains("Kiyora", case=False, na=False)
@@ -111,11 +109,7 @@ kiyora_df = data[
 
 print("Kiyora Users:", kiyora_df.shape[0])
 
-
-
 #  เลือก Features ที่สะท้อนเหตุผลการเลือกซื้อ
-
-
 cluster_features = [
 
     # Skin condition
@@ -144,18 +138,13 @@ print("Total Features:", len(cluster_features))
 
 
 # เตรียมข้อมูล
-
-
 X = kiyora_df[cluster_features].fillna(0)
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
 
-
 # : หา k ที่เหมาะสม
-
-
 inertia = []
 sil_scores = []
 
@@ -186,18 +175,13 @@ plt.tight_layout()
 plt.show()
 
 
-# ทํา kทำฟืห
-
-
 best_k = 3
 
 kmeans = KMeans(n_clusters=best_k, random_state=42, n_init=10)
 kiyora_df["cluster"] = kmeans.fit_predict(X_scaled)
 
 
-
-# ดูจำนวนคนแต่ละกลุ่ม
-
+#ดูจำนวนคนแต่ละกลุ่ม
 
 print("\nCluster Counts")
 print(kiyora_df["cluster"].value_counts())
@@ -205,8 +189,6 @@ print(kiyora_df["cluster"].value_counts())
 
 
 # Profile แต่ละ Cluster
-
-
 cluster_profile = kiyora_df.groupby("cluster")[cluster_features].mean().round(2)
 
 pd.set_option("display.max_columns", None)
@@ -257,10 +239,6 @@ print("- kiyora_cluster_profile.csv")
 # =====================================================
 # PCA : MARKET-LEVEL (MODEL 1)
 # =====================================================
-
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 
@@ -347,16 +325,6 @@ plt.show()
 # =====================================================
 # PCA + Visualization : KIYORA USERS (MODEL 2)
 # =====================================================
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-
-
-
 #Filter เฉพาะ Kiyora users
 
 kiyora_df = data[
@@ -364,9 +332,7 @@ kiyora_df = data[
 ].copy()
 
 
-#  Features
-
-
+# Features
 factor_cols = [
     'factor_deep_cleansing',
     'factor_acne_friendly',
@@ -396,8 +362,6 @@ pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X_scaled)
 
 print("Explained Variance:", pca.explained_variance_ratio_)
-
-
 
 kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
 kiyora_df["cluster"] = kmeans.fit_predict(X_scaled)
