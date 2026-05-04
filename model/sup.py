@@ -1,9 +1,8 @@
-import sys
-import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -22,26 +21,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-warnings.filterwarnings("ignore")
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
-
-
-# ==============================================================================
 # 1. LOAD DATA
-# ==============================================================================
 ROOT_DIR = Path(__file__).resolve().parents[1]
-DATA_CANDIDATES = [
-    ROOT_DIR / "data" / "dataset_extended_prepared.csv",
-    ROOT_DIR / "kiyora_ml_ready.csv",
-]
-
-data_path = next((path for path in DATA_CANDIDATES if path.exists()), None)
-if data_path is None:
-    raise FileNotFoundError(
-        f"Dataset not found. Expected one of: {', '.join(str(path) for path in DATA_CANDIDATES)}"
-    )
+data_path = ROOT_DIR / "data" / "dataset_extended_prepared.csv"
 
 df = pd.read_csv(data_path)
 if "target_kiyora" not in df.columns:
@@ -126,7 +109,9 @@ print(f"Train: {len(y_train)}  |  Test: {len(y_test)}\n")
 # 4. DEFINE MODELS
 models = {
     "Logistic Regression": LogisticRegression(class_weight="balanced", max_iter=500, random_state=42),
-    "Random Forest": RandomForestClassifier(n_estimators=200, class_weight="balanced", random_state=42),
+    "Random Forest": RandomForestClassifier(
+        n_estimators=200, class_weight="balanced", random_state=42, n_jobs=1
+    ),
     "SVM": SVC(kernel="rbf", class_weight="balanced", probability=True, random_state=42),
     "KNN": KNeighborsClassifier(n_neighbors=5),
     "Decision Tree": DecisionTreeClassifier(max_depth=4, class_weight="balanced", random_state=42),
@@ -144,23 +129,19 @@ for name, clf in models.items():
     pipe = Pipeline([("scaler", StandardScaler()), ("clf", clf)])
 
     cv_f1 = cross_val_score(pipe, X_train, y_train, cv=cv, scoring="f1").mean()
-    cv_auc = cross_val_score(pipe, X_train, y_train, cv=cv, scoring="roc_auc").mean()
 
     pipe.fit(X_train, y_train)
     y_pred = pipe.predict(X_test)
     y_prob = pipe.predict_proba(X_test)[:, 1]
 
     results[name] = {
-        "pipe": pipe,
         "y_pred": y_pred,
-        "y_prob": y_prob,
         "acc": accuracy_score(y_test, y_pred),
         "precision": precision_score(y_test, y_pred, zero_division=0),
         "recall": recall_score(y_test, y_pred, zero_division=0),
         "f1": f1_score(y_test, y_pred, zero_division=0),
         "auc": roc_auc_score(y_test, y_prob),
         "cv_f1": cv_f1,
-        "cv_auc": cv_auc,
     }
     r = results[name]
     print(
@@ -169,7 +150,6 @@ for name, clf in models.items():
     )
 
 print("=" * 65)
-
 
 # 6. BEST MODEL REPORT
 best_name = max(results, key=lambda k: results[k]["cv_f1"])
@@ -186,13 +166,3 @@ cm = confusion_matrix(y_test, best["y_pred"])
 print("                Predicted Other  Predicted Kiyora")
 print(f"Actual Other         {cm[0,0]:>4}              {cm[0,1]:>4}")
 print(f"Actual Kiyora        {cm[1,0]:>4}              {cm[1,1]:>4}")
-
-# 7. FEATURE IMPORTANCE (Random Forest)
-rf_pipe = results["Random Forest"]["pipe"]
-rf_clf = rf_pipe.named_steps["clf"]
-fi = pd.DataFrame({"feature": FEATURE_COLS, "importance": rf_clf.feature_importances_}).sort_values(
-    "importance", ascending=False
-)
-
-print("\nTop 10 Features (Random Forest Importance)")
-print(fi.head(10).to_string(index=False))
