@@ -9,11 +9,13 @@ from sklearn.metrics import silhouette_score
 
 data = pd.read_csv("dataset_extended_prepared.csv")
 
-cluster_features = [
-    'age_encoded',
-    'monthly_income_encoded',
-    'acne_level_encoded',
-    'skin_type_encoded',
+
+# =====================================================
+# CORRELATION HEATMAP
+# วิเคราะห์ความสัมพันธ์ระหว่างปัจจัยการเลือก Cleansing
+# =====================================================
+
+factor_cols = [
     'factor_deep_cleansing',
     'factor_acne_friendly',
     'factor_sensitive_friendly',
@@ -25,6 +27,97 @@ cluster_features = [
     'factor_oil_control',
     'factor_no_allergen'
 ]
+corr_data = data[factor_cols]
+
+
+# Correlation Matrix
+corr_matrix = corr_data.corr()
+
+print(corr_matrix)
+plt.figure(figsize=(10,8))
+
+sns.heatmap(
+    corr_matrix,
+    annot=True,       
+    cmap='coolwarm',  
+    fmt=".2f",         
+    linewidths=0.5
+)
+
+plt.title("Correlation Heatmap of Cleansing Factors")
+
+plt.show()
+
+
+# =====================================================
+# Z-SCORE ANOMALY DETECTION
+# =====================================================
+
+from scipy.stats import zscore
+
+factor_cols = [
+    'factor_deep_cleansing',
+    'factor_acne_friendly',
+    'factor_sensitive_friendly',
+    'factor_hypoallergenic',
+    'factor_moisturizing',
+    'factor_low_friction',
+    'factor_nourishment',
+    'factor_eye_friendly',
+    'factor_oil_control',
+    'factor_no_allergen'
+]
+
+X = data[factor_cols].fillna(0)
+
+z_scores = np.abs(zscore(X))
+
+threshold = 3
+
+anomaly_mask = (z_scores > threshold).any(axis=1)
+
+anomalies = data[anomaly_mask]
+print("Total anomalies found:", anomalies.shape[0])
+
+print("\nSample anomalies:")
+print(anomalies.head())
+
+# =====================================================
+# MODEL 1 : KIYORA USER SEGMENTATION
+# =====================================================
+
+cluster_features = [
+     # demographic
+    'age_encoded',
+    'monthly_income_encoded',
+
+    # skin behavior
+    'skin_type_encoded',
+    'acne_level_encoded',
+
+    # cleansing preference
+    'factor_deep_cleansing',
+    'factor_acne_friendly',
+    'factor_sensitive_friendly',
+    'factor_hypoallergenic',
+    'factor_moisturizing',
+    'factor_low_friction',
+    'factor_nourishment',
+    'factor_eye_friendly',
+    'factor_oil_control',
+    'factor_no_allergen',
+
+    # skin concerns
+    'prob_ผิวมันเยิ้ม',
+    'prob_ผิวแพ้ง่าย',
+    'prob_สิวอักเสบ',
+    'prob_สิวอุดตัน',
+    'prob_รูขุมขนกว้าง',
+
+    # cleansing behavior
+    'uses_cleansing_water'
+]
+
 
 X = data[cluster_features].fillna(0)
 
@@ -110,23 +203,30 @@ kiyora_df = data[
 print("Kiyora Users:", kiyora_df.shape[0])
 
 #  เลือก Features ที่สะท้อนเหตุผลการเลือกซื้อ
-cluster_features = [
+cluster_features_2 = [
 
-    # Skin condition
-    "skin_type_encoded",
-    "acne_level_encoded",
+     # behavior
+    'skin_type_encoded',
+    'acne_level_encoded',
 
-    # Product drivers
-    "factor_deep_cleansing",
-    "factor_acne_friendly",
-    "factor_sensitive_friendly",
-    "factor_hypoallergenic",
-    "factor_moisturizing",
-    "factor_low_friction",
-    "factor_nourishment",
-    "factor_eye_friendly",
-    "factor_oil_control",
-    "factor_no_allergen"
+    # factors
+    'factor_deep_cleansing',
+    'factor_acne_friendly',
+    'factor_sensitive_friendly',
+    'factor_hypoallergenic',
+    'factor_moisturizing',
+    'factor_low_friction',
+    'factor_nourishment',
+    'factor_eye_friendly',
+    'factor_oil_control',
+    'factor_no_allergen',
+
+    # skin concerns
+    'prob_ผิวมันเยิ้ม',
+    'prob_ผิวแพ้ง่าย',
+    'prob_สิวอักเสบ',
+    'prob_สิวอุดตัน',
+    'prob_รูขุมขนกว้าง'
 ]
 
 # ถ้ามี prob_ columns (skin concerns) ให้เพิ่มอัตโนมัติ
@@ -134,8 +234,6 @@ prob_cols = [col for col in kiyora_df.columns if col.startswith("prob_")]
 cluster_features.extend(prob_cols)
 
 print("Total Features:", len(cluster_features))
-
-
 
 # เตรียมข้อมูล
 X = kiyora_df[cluster_features].fillna(0)
@@ -186,8 +284,6 @@ kiyora_df["cluster"] = kmeans.fit_predict(X_scaled)
 print("\nCluster Counts")
 print(kiyora_df["cluster"].value_counts())
 
-
-
 # Profile แต่ละ Cluster
 cluster_profile = kiyora_df.groupby("cluster")[cluster_features].mean().round(2)
 
@@ -202,9 +298,7 @@ cluster_profile.to_csv("kiyora_cluster_profile.csv")
 
 print("\nFiles Saved:")
 print("- kiyora_clustered.csv")
-<<<<<<< HEAD
-print("- kiyora_cluster_profile.csv")
-=======
+
 print("- kiyora_cluster_profile.csv")
 
 #Cluster 2: Sensitive Acne Care Seekers (Core Target)
@@ -244,8 +338,17 @@ from sklearn.decomposition import PCA
 
 #เลือกเฉพาะ factor (สิ่งที่ใช้ตัดสินใจซื้อ)
 
+cluster_features = [
 
-factor_cols = [
+    # demographic
+    'age_encoded',
+    'monthly_income_encoded',
+
+    # skin behavior
+    'skin_type_encoded',
+    'acne_level_encoded',
+
+    # cleansing preference
     'factor_deep_cleansing',
     'factor_acne_friendly',
     'factor_sensitive_friendly',
@@ -255,10 +358,20 @@ factor_cols = [
     'factor_nourishment',
     'factor_eye_friendly',
     'factor_oil_control',
-    'factor_no_allergen'
+    'factor_no_allergen',
+
+    # skin concerns
+    'prob_ผิวมันเยิ้ม',
+    'prob_ผิวแพ้ง่าย',
+    'prob_สิวอักเสบ',
+    'prob_สิวอุดตัน',
+    'prob_รูขุมขนกว้าง',
+
+    # cleansing behavior
+    'uses_cleansing_water'
 ]
 
-X = data[factor_cols].fillna(0)
+X = data[cluster_features].fillna(0)
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
@@ -284,15 +397,13 @@ print(np.cumsum(explained_var))
 
 loadings = pd.DataFrame(
     pca.components_.T,
-    columns=[f"PC{i+1}" for i in range(len(factor_cols))],
-    index=factor_cols
+    columns=[f"PC{i+1}" for i in range(len(cluster_features))],
+    index=cluster_features
 )
 
 print("\nPCA Loadings:")
 pd.set_option('display.max_columns', None)
 print(loadings.round(3).to_string())
-
-import matplotlib.pyplot as plt
 
 # =====================================================
 # ใช้ X_pca จาก PCA และ cluster จาก KMeans
@@ -349,7 +460,15 @@ factor_cols = [
 # รวม prob columns
 prob_cols = [col for col in kiyora_df.columns if col.startswith("prob_")]
 
-cluster_features = factor_cols + prob_cols
+cluster_features = (
+    factor_cols
+    + prob_cols
+    + [
+        'skin_type_encoded',
+        'acne_level_encoded',
+        'uses_cleansing_water'
+    ]
+)
 
 X = kiyora_df[cluster_features].fillna(0)
 
@@ -389,4 +508,4 @@ plt.legend()
 plt.grid()
 
 plt.show()
->>>>>>> 7d123f3 (update model unsup)
+
