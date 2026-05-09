@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
@@ -8,7 +10,9 @@ from sklearn.preprocessing import LabelEncoder
 plt.rcParams['font.family'] = 'Tahoma'
 
 # โหลดข้อมูล
-data = pd.read_csv('dataset_extended_prepared.csv')
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_PATH = BASE_DIR / 'data' / 'dataset_extended_prepared.csv'
+data = pd.read_csv(DATA_PATH)
 
 # Part 1: Demographic Profile
 # เพศ (Gender)
