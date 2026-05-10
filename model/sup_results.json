@@ -1,0 +1,139 @@
+{
+  "model_a": {
+    "best_model": "Random Forest",
+    "metrics": {
+      "cv_f1": 0.917116967999321,
+      "auc": 0.9938016528925621,
+      "accuracy": 0.9090909090909091,
+      "precision": 1.0,
+      "recall": 0.8181818181818182,
+      "f1": 0.9
+    },
+    "confusion_matrix": {
+      "actual_other": {
+        "predicted_other": 22,
+        "predicted_kiyora": 0
+      },
+      "actual_kiyora": {
+        "predicted_other": 4,
+        "predicted_kiyora": 18
+      }
+    },
+    "class_balance": [
+      {
+        "label": "Other Brand",
+        "value": 110
+      },
+      {
+        "label": "Kiyora",
+        "value": 19
+      }
+    ]
+  },
+  "model_b": {
+    "best_acne_model": "SVM",
+    "best_income_model": "Random Forest",
+    "acne_labels": {
+      "0": "ไม่มี/น้อยมาก",
+      "1": "สิวเล็กน้อย",
+      "2": "สิวปานกลาง",
+      "3": "สิวรุนแรง"
+    },
+    "income_labels": {
+      "0": "Low (<15k)",
+      "1": "Mid (15-30k)",
+      "2": "High (30k+)"
+    },
+    "segments": [
+      {
+        "Acne Level": "สิวปานกลาง",
+        "Income Group": "Low (<15k)",
+        "Total": 23,
+        "Kiyora Users": 4,
+        "Kiyora %": 17.4
+      },
+      {
+        "Acne Level": "สิวรุนแรง",
+        "Income Group": "Mid (15-30k)",
+        "Total": 5,
+        "Kiyora Users": 3,
+        "Kiyora %": 60.0
+      },
+      {
+        "Acne Level": "ไม่มี/น้อยมาก",
+        "Income Group": "High (30k+)",
+        "Total": 16,
+        "Kiyora Users": 3,
+        "Kiyora %": 18.8
+      },
+      {
+        "Acne Level": "สิวปานกลาง",
+        "Income Group": "High (30k+)",
+        "Total": 10,
+        "Kiyora Users": 2,
+        "Kiyora %": 20.0
+      },
+      {
+        "Acne Level": "สิวรุนแรง",
+        "Income Group": "High (30k+)",
+        "Total": 11,
+        "Kiyora Users": 2,
+        "Kiyora %": 18.2
+      },
+      {
+        "Acne Level": "สิวเล็กน้อย",
+        "Income Group": "High (30k+)",
+        "Total": 15,
+        "Kiyora Users": 2,
+        "Kiyora %": 13.3
+      },
+      {
+        "Acne Level": "สิวปานกลาง",
+        "Income Group": "Mid (15-30k)",
+        "Total": 7,
+        "Kiyora Users": 1,
+        "Kiyora %": 14.3
+      },
+      {
+        "Acne Level": "สิวเล็กน้อย",
+        "Income Group": "Low (<15k)",
+        "Total": 16,
+        "Kiyora Users": 1,
+        "Kiyora %": 6.2
+      },
+      {
+        "Acne Level": "ไม่มี/น้อยมาก",
+        "Income Group": "Low (<15k)",
+        "Total": 4,
+        "Kiyora Users": 1,
+        "Kiyora %": 25.0
+      },
+      {
+        "Acne Level": "สิวรุนแรง",
+        "Income Group": "Low (<15k)",
+        "Total": 9,
+        "Kiyora Users": 0,
+        "Kiyora %": 0.0
+      },
+      {
+        "Acne Level": "สิวเล็กน้อย",
+        "Income Group": "Mid (15-30k)",
+        "Total": 9,
+        "Kiyora Users": 0,
+        "Kiyora %": 0.0
+      },
+      {
+        "Acne Level": "ไม่มี/น้อยมาก",
+        "Income Group": "Mid (15-30k)",
+        "Total": 4,
+        "Kiyora Users": 0,
+        "Kiyora %": 0.0
+      }
+    ]
+  },
+  "summary": {
+    "total_samples": 129,
+    "kiyora_users": 19,
+    "kiyora_share": 14.728682170542637
+  }
+}
