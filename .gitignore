@@ -26,3 +26,4 @@ venv/
 skills-lock.json
 .agents/
 .vercel
+.claude
