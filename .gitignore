@@ -1,5 +1,7 @@
 # Data files (raw survey data — not committed)
 *.csv
+# Allow processed dataset (needed by API on Vercel)
+!dataset_extended_prepared.csv
 # Allow pre-computed model outputs
 !model/kiyora_clustered.csv
 !model/kiyora_cluster_profile.csv
