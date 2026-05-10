@@ -1,10 +1,28 @@
-*.png
+# Data files (raw survey data — not committed)
 *.csv
+# Allow pre-computed model outputs
+!model/kiyora_clustered.csv
+!model/kiyora_cluster_profile.csv
+
+# Images
+*.png
+
+# Environment
 .env
 .env.*
 !.env.example
+
+# Python
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS
 .DS_Store
+
+# Tools
 skills-lock.json
 .agents/
+.vercel
