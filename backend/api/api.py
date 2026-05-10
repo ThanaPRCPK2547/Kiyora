@@ -13,7 +13,6 @@ from backend.api.supabase_client import (
 )
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-PUBLIC_DIR = ROOT_DIR / "public"
 
 app = FastAPI(title="Kiyora Dashboard API")
 
@@ -30,23 +29,10 @@ class RecordPayload(BaseModel):
 
 @app.get("/", include_in_schema=False)
 def read_root():
-    index_path = PUBLIC_DIR / "index.html"
+    index_path = ROOT_DIR / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
     return read_api_info()
-
-@app.get("/api/debug-path", include_in_schema=False)
-def debug_path():
-    import os
-    cwd = Path.cwd()
-    return {
-        "__file__": str(Path(__file__).resolve()),
-        "ROOT_DIR": str(ROOT_DIR),
-        "PUBLIC_DIR": str(PUBLIC_DIR),
-        "index_exists": (PUBLIC_DIR / "index.html").exists(),
-        "cwd": str(cwd),
-        "cwd_ls": sorted(os.listdir(str(cwd)))[:20],
-    }
 
 @app.get("/api")
 def read_api_info():
