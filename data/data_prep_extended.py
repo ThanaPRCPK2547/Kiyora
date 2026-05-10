@@ -5,6 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import mutual_info_classif
 
 data = pd.read_csv('dataset_cleansing.csv')
+data = data.drop('Timestamp', axis=1)
 
 # เปลี่ยนชื่อคอลัมน์
 rename_map = {
