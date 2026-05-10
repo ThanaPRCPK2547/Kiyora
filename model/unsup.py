@@ -1,3 +1,10 @@
+from pathlib import Path
+import os
+import tempfile
+
+os.environ.setdefault("LOKY_MAX_CPU_COUNT", "1")
+os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "kiyora-matplotlib"))
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,7 +14,17 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
-data = pd.read_csv("dataset_extended_prepared.csv")
+ROOT_DIR = Path(__file__).resolve().parents[1]
+DATA_CANDIDATES = [
+    ROOT_DIR / "dataset_extended_prepared.csv",
+    ROOT_DIR / "data" / "dataset_extended_prepared.csv",
+    Path("/mnt/user-data/uploads/dataset_extended_prepared.csv"),
+]
+data_path = next((path for path in DATA_CANDIDATES if path.exists()), None)
+if data_path is None:
+    raise FileNotFoundError("dataset_extended_prepared.csv not found.")
+
+data = pd.read_csv(data_path)
 
 
 # =====================================================
@@ -231,12 +248,12 @@ cluster_features_2 = [
 
 # ถ้ามี prob_ columns (skin concerns) ให้เพิ่มอัตโนมัติ
 prob_cols = [col for col in kiyora_df.columns if col.startswith("prob_")]
-cluster_features.extend(prob_cols)
+cluster_features_2.extend(col for col in prob_cols if col not in cluster_features_2)
 
-print("Total Features:", len(cluster_features))
+print("Total Features:", len(cluster_features_2))
 
 # เตรียมข้อมูล
-X = kiyora_df[cluster_features].fillna(0)
+X = kiyora_df[cluster_features_2].fillna(0)
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
@@ -285,7 +302,7 @@ print("\nCluster Counts")
 print(kiyora_df["cluster"].value_counts())
 
 # Profile แต่ละ Cluster
-cluster_profile = kiyora_df.groupby("cluster")[cluster_features].mean().round(2)
+cluster_profile = kiyora_df.groupby("cluster")[cluster_features_2].mean().round(2)
 
 pd.set_option("display.max_columns", None)
 print("\nCluster Profile")
@@ -293,8 +310,8 @@ print(cluster_profile.to_string())
 
 
 
-kiyora_df.to_csv("kiyora_clustered.csv", index=False)
-cluster_profile.to_csv("kiyora_cluster_profile.csv")
+kiyora_df.to_csv(Path.cwd() / "kiyora_clustered.csv", index=False)
+cluster_profile.to_csv(Path.cwd() / "kiyora_cluster_profile.csv")
 
 print("\nFiles Saved:")
 print("- kiyora_clustered.csv")

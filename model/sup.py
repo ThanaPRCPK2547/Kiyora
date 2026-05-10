@@ -10,6 +10,7 @@ Model B : Cross-Analysis – Acne Level × Income Group → Segment
           Cross   : รวมผลทั้ง 2 โมเดล → segment 12 ช่อง
 """
 
+import json
 import os
 import sys
 import warnings
@@ -46,12 +47,13 @@ from sklearn.tree import DecisionTreeClassifier
 # 1. LOAD DATA
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_CANDIDATES = [
+    ROOT_DIR / "dataset_extended_prepared.csv",
     ROOT_DIR / "data" / "dataset_extended_prepared.csv",
     Path("/mnt/user-data/uploads/dataset_extended_prepared.csv"),
 ]
 data_path = next((p for p in DATA_CANDIDATES if p.exists()), None)
 if data_path is None:
-    raise FileNotFoundError("Dataset not found.")
+    raise FileNotFoundError("dataset_extended_prepared.csv not found.")
 
 df = pd.read_csv(data_path)
 print(f"[Load] {df.shape[0]} rows × {df.shape[1]} cols\n")
@@ -309,3 +311,50 @@ print(pivot_pct.to_string())
 print(f"\n[Model A Best]      {best_a}")
 print(f"[Model B1 Best]     {best_acne}")
 print(f"[Model B2 Best]     {best_income}")
+
+# =====================================================
+# SAVE RESULTS TO JSON
+# =====================================================
+MODEL_DIR = Path(__file__).resolve().parent
+
+# Model A Results
+sup_results = {
+    "model_a": {
+        "best_model": best_a,
+        "metrics": {
+            "cv_f1": float(results_a[best_a]["cv_f1"]),
+            "auc": float(results_a[best_a]["auc"]),
+            "accuracy": float(results_a[best_a]["acc"]),
+            "precision": float(results_a[best_a]["precision"]),
+            "recall": float(results_a[best_a]["recall"]),
+            "f1": float(results_a[best_a]["f1"]),
+        },
+        "confusion_matrix": {
+            "actual_other": {"predicted_other": int(cm[0,0]), "predicted_kiyora": int(cm[0,1])},
+            "actual_kiyora": {"predicted_other": int(cm[1,0]), "predicted_kiyora": int(cm[1,1])},
+        },
+        "class_balance": [
+            {"label": "Other Brand", "value": int((y_a == 0).sum())},
+            {"label": "Kiyora", "value": int((y_a == 1).sum())},
+        ],
+    },
+    "model_b": {
+        "best_acne_model": best_acne,
+        "best_income_model": best_income,
+        "acne_labels": ACNE_LABELS,
+        "income_labels": INCOME_LABELS,
+        "segments": seg.to_dict(orient="records"),
+    },
+    "summary": {
+        "total_samples": int(len(df)),
+        "kiyora_users": int(df["target_kiyora"].sum()),
+        "kiyora_share": float(df["target_kiyora"].mean() * 100),
+    },
+}
+
+# Save to JSON
+output_path = MODEL_DIR / "sup_results.json"
+with open(output_path, "w", encoding="utf-8") as f:
+    json.dump(sup_results, f, ensure_ascii=False, indent=2)
+
+print(f"\n✓ Results saved to: {output_path}")

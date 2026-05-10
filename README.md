@@ -60,3 +60,52 @@ cd ../visualization
 python3 viz_analysis.py
 ```
 *(รูปภาพกราฟทั้งหมดจะถูกบันทึกในโฟลเดอร์ `visualization/plots/`)*
+
+## Supabase Database Setup
+
+1. สร้าง Supabase project แล้วเปิด SQL Editor
+2. รันไฟล์ `docs/supabase_schema.sql` เพื่อสร้าง table `kiyora_records`
+3. สร้างไฟล์ `.env` จาก `.env.example` แล้วใส่ค่าจริง:
+```bash
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_KEY=your-supabase-server-key
+SUPABASE_TABLE=kiyora_records
+```
+4. รัน API:
+```bash
+uvicorn backend.api.api:app --reload
+```
+5. ทดสอบ endpoint:
+```bash
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/records
+```
+
+## Dashboard + Vercel
+
+หน้า dashboard อยู่ที่ `public/index.html` และถูกเสิร์ฟผ่าน FastAPI entrypoint `app.py`
+
+รัน local:
+```bash
+uvicorn app:app --reload
+```
+
+เปิด:
+```text
+http://127.0.0.1:8000/
+```
+
+API ที่ dashboard ใช้:
+```text
+GET /api/overview
+GET /api/health
+GET /api/records
+POST /api/records
+```
+
+Deploy บน Vercel จาก root ของ repo โดยตั้ง Environment Variables:
+```text
+SUPABASE_URL
+SUPABASE_KEY
+SUPABASE_TABLE
+```

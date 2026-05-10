@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiyora ML Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --text: #18202f;
+      --muted: #647084;
+      --line: #dce3ed;
+      --teal: #0f9f8e;
+      --indigo: #5867d8;
+      --amber: #d99121;
+      --rose: #d84f6a;
+      --blue: #1f7acb;
+      --shadow: 0 14px 30px rgba(24, 32, 47, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button { font: inherit; }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 18px;
+      border-right: 1px solid var(--line);
+      background: #101725;
+      color: #f7f9fc;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 40px;
+      font-weight: 760;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #dff7f2;
+      color: #0d756c;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+      margin-top: 28px;
+    }
+
+    .nav button {
+      width: 100%;
+      min-height: 38px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 12px;
+      background: transparent;
+      color: #b9c3d1;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav button[aria-selected="true"] {
+      background: #1d2a3d;
+      color: #ffffff;
+    }
+
+    .sidebar-meta {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      color: #aab6c7;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 24px clamp(18px, 3vw, 34px) 34px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .status {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    .refresh {
+      min-height: 34px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 12px;
+      background: #18202f;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      min-height: 106px;
+      padding: 16px;
+      display: grid;
+      align-content: space-between;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric-value {
+      font-size: clamp(26px, 3vw, 34px);
+      line-height: 1;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .metric-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .panel-kicker {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chart-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(96px, 170px) minmax(0, 1fr) 58px;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .bar-label {
+      min-width: 0;
+      color: #313b4d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e8edf4;
+    }
+
+    .bar {
+      height: 100%;
+      width: var(--w);
+      min-width: 2px;
+      border-radius: 999px;
+      background: var(--c, var(--teal));
+    }
+
+    .bar-value {
+      text-align: right;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+    }
+
+    .donut {
+      width: 144px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: conic-gradient(var(--teal) calc(var(--p) * 1%), #e8edf4 0);
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+    }
+
+    .donut::after {
+      content: attr(data-label);
+      width: 92px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 760;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+
+    .cluster-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .cluster-table th,
+    .cluster-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .cluster-table th {
+      color: var(--muted);
+      font-weight: 650;
+      background: var(--panel-2);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3e4bb8;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .cm-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .cm-table th,
+    .cm-table td {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .cm-table th {
+      background: var(--panel-2);
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .cm-table td.hit { background: #e6f7f5; color: #0a6b62; font-weight: 700; }
+    .cm-table td.miss { background: #fff3f5; color: #9e3247; }
+
+    .seg-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .seg-table th,
+    .seg-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .seg-table th {
+      color: var(--muted);
+      font-weight: 650;
+      background: var(--panel-2);
+      white-space: nowrap;
+    }
+
+    .seg-table td:last-child { text-align: right; }
+
+    .cluster-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .cluster-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--panel-2);
+    }
+
+    .cluster-card-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .cluster-card-id {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3e4bb8;
+      margin-bottom: 8px;
+    }
+
+    .cluster-card-stat {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .cluster-card-bars {
+      margin-top: 10px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .cluster-card-bar-row {
+      display: grid;
+      grid-template-columns: 110px minmax(0,1fr) 32px;
+      gap: 6px;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .cluster-card-bar-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #313b4d;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .empty {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .nav {
+        display: flex;
+        margin-top: 0;
+      }
+      .nav button { width: auto; }
+      .sidebar-meta { display: none; }
+      .metrics,
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .topbar,
+      .split { display: grid; }
+      .metrics,
+      .grid { grid-template-columns: 1fr; }
+      .bar-row {
+        grid-template-columns: minmax(88px, 120px) minmax(0, 1fr) 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">K</span>
+        <span>Kiyora ML</span>
+      </div>
+      <nav class="nav" aria-label="Dashboard views">
+        <button type="button" data-view-button="overview" aria-selected="true">Overview</button>
+        <button type="button" data-view-button="supervised" aria-selected="false">Supervised</button>
+        <button type="button" data-view-button="unsupervised" aria-selected="false">Unsupervised</button>
+      </nav>
+      <div class="sidebar-meta">
+        <div id="sourceLabel">Source: loading</div>
+        <div>FastAPI on Vercel</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Dashboard Overview</h1>
+          <p class="subtitle">Supervised and unsupervised model signals for Kiyora cleansing survey data.</p>
+        </div>
+        <div class="toolbar">
+          <div class="status"><span class="status-dot"></span><span id="statusText">Loading data</span></div>
+          <button class="refresh" type="button" id="refreshButton">Refresh</button>
+        </div>
+      </header>
+
+      <section class="metrics" aria-label="Key metrics">
+        <article class="metric">
+          <div class="metric-label">Respondents</div>
+          <div class="metric-value" id="metricRows">0</div>
+          <div class="metric-note" id="metricColumns">0 columns</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Kiyora Users</div>
+          <div class="metric-value" id="metricKiyora">0</div>
+          <div class="metric-note" id="metricKiyoraShare">0%</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Feature Count</div>
+          <div class="metric-value" id="metricFeatures">0</div>
+          <div class="metric-note">supervised candidates</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Clusters</div>
+          <div class="metric-value" id="metricClusters">0</div>
+          <div class="metric-note" id="metricClusterFeatures">0 features</div>
+        </article>
+      </section>
+
+      <section class="view active" data-view="overview">
+        <div class="grid">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Brand Mix</h2>
+              <span class="panel-kicker">primary brand</span>
+            </div>
+            <div class="chart-list" id="brandMix"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Kiyora Share</h2>
+              <span class="panel-kicker">target balance</span>
+            </div>
+            <div class="split">
+              <div class="donut" id="kiyoraDonut" style="--p: 0" data-label="0%"></div>
+              <div class="chart-list" id="classBalance"></div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Purchase Factors</h2>
+              <span class="panel-kicker">mean score</span>
+            </div>
+            <div class="chart-list" id="factorScores"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Cluster Spread</h2>
+              <span class="panel-kicker">unsupervised</span>
+            </div>
+            <div id="clusterTable"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" data-view="supervised">
+        <div class="metrics" id="modelMetrics" style="display:none; margin-bottom:16px">
+          <article class="metric">
+            <div class="metric-label">Accuracy</div>
+            <div class="metric-value" id="metricAccuracy">—</div>
+            <div class="metric-note" id="metricBestModel">best model</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">AUC</div>
+            <div class="metric-value" id="metricAuc">—</div>
+            <div class="metric-note">ROC AUC</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">F1 Score</div>
+            <div class="metric-value" id="metricF1">—</div>
+            <div class="metric-note">test set</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">CV F1</div>
+            <div class="metric-value" id="metricCvF1">—</div>
+            <div class="metric-note">5-fold</div>
+          </article>
+        </div>
+        <div class="grid">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Feature Importance</h2>
+              <span class="panel-kicker" id="supModelName">model</span>
+            </div>
+            <div class="chart-list" id="featureImportance"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Target Balance</h2>
+              <span class="panel-kicker">classification</span>
+            </div>
+            <div class="chart-list" id="targetBalance"></div>
+          </article>
+        </div>
+        <div class="grid" id="supDetailGrid" style="display:none; margin-top:12px">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Confusion Matrix</h2>
+              <span class="panel-kicker">Model A</span>
+            </div>
+            <div id="confusionMatrix"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Acne × Income Segments</h2>
+              <span class="panel-kicker">Model B cross-analysis</span>
+            </div>
+            <div id="modelBSegments"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" data-view="unsupervised">
+        <div class="grid">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Silhouette Scores</h2>
+              <span class="panel-kicker">k selection</span>
+            </div>
+            <div class="chart-list" id="silhouetteScores"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Kiyora by Cluster</h2>
+              <span class="panel-kicker">user count</span>
+            </div>
+            <div class="chart-list" id="kiyoraClusterMix"></div>
+          </article>
+        </div>
+        <article class="panel" id="kiyoraClustersPanel" style="display:none; margin-top:12px">
+          <div class="panel-header">
+            <h2>Kiyora Cluster Profiles</h2>
+            <span class="panel-kicker">pre-trained · k=3</span>
+          </div>
+          <div id="kiyoraClusters"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const colors = ["#0f9f8e", "#5867d8", "#d99121", "#d84f6a", "#1f7acb", "#7a5fb8"];
+    const formatter = new Intl.NumberFormat("en-US");
+
+    document.querySelectorAll("[data-view-button]").forEach((button) => {
+      button.addEventListener("click", () => setView(button.dataset.viewButton));
+    });
+    document.getElementById("refreshButton").addEventListener("click", () => loadData(true));
+
+    function setView(view) {
+      document.querySelectorAll("[data-view-button]").forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.viewButton === view));
+      });
+      document.querySelectorAll("[data-view]").forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.view === view);
+      });
+    }
+
+    async function loadData(refresh = false) {
+      setStatus("Loading data", true);
+      try {
+        const response = await fetch(`/api/overview${refresh ? "?refresh=true" : ""}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        render(await response.json());
+        setStatus("Live", true);
+      } catch (error) {
+        setStatus("Unavailable", false);
+        renderEmpty(error.message);
+      }
+    }
+
+    function setStatus(text, ok) {
+      document.getElementById("statusText").textContent = text;
+      document.querySelector(".status-dot").style.background = ok ? "#0f9f8e" : "#d84f6a";
+    }
+
+    function render(data) {
+      const summary = data.summary || {};
+      const sup = data.supervised || {};
+      const unsup = data.unsupervised || {};
+
+      document.getElementById("sourceLabel").textContent = `Source: ${summary.source_label || data.source || "unknown"}`;
+      document.getElementById("metricRows").textContent = formatter.format(summary.rows || 0);
+      document.getElementById("metricColumns").textContent = `${formatter.format(summary.columns || 0)} columns`;
+      document.getElementById("metricKiyora").textContent = formatter.format(summary.kiyora_users || 0);
+      document.getElementById("metricKiyoraShare").textContent = `${summary.kiyora_share || 0}% of respondents`;
+      document.getElementById("metricFeatures").textContent = formatter.format(sup.feature_count || 0);
+      document.getElementById("metricClusters").textContent = formatter.format(unsup.cluster_count || 0);
+      document.getElementById("metricClusterFeatures").textContent = `${formatter.format(unsup.features || 0)} features`;
+      document.getElementById("supModelName").textContent = sup.best_model || "model";
+
+      const share = Number(summary.kiyora_share || 0);
+      const donut = document.getElementById("kiyoraDonut");
+      donut.style.setProperty("--p", share);
+      donut.dataset.label = `${share}%`;
+
+      renderBars("brandMix", sup.brand_mix || [], "count");
+      renderBars("classBalance", sup.class_balance || [], "count", ["#5867d8", "#0f9f8e"]);
+      renderBars("factorScores", sup.factor_scores || [], "score");
+      renderBars("featureImportance", sup.feature_importance || [], "score");
+      renderBars("targetBalance", sup.class_balance || [], "count", ["#5867d8", "#0f9f8e"]);
+      renderBars("silhouetteScores", (unsup.silhouette || []).map((row) => ({
+        label: `k=${row.k}`,
+        value: row.score
+      })), "score", ["#d99121"]);
+      renderBars("kiyoraClusterMix", unsup.kiyora_cluster_mix || [], "count", ["#0f9f8e"]);
+      renderClusterTable(unsup.clusters || []);
+
+      if (sup.model_metrics) {
+        renderModelMetrics(sup.model_metrics, sup.best_model);
+      }
+      if (sup.confusion_matrix) {
+        renderConfusionMatrix(sup.confusion_matrix);
+      }
+      if (sup.model_b && sup.model_b.segments) {
+        renderModelBSegments(sup.model_b.segments);
+      }
+      if (unsup.kiyora_clusters && unsup.kiyora_clusters.length) {
+        renderKiyoraClusters(unsup.kiyora_clusters);
+      }
+    }
+
+    function renderModelMetrics(metrics, bestModel) {
+      const panel = document.getElementById("modelMetrics");
+      panel.style.display = "";
+      document.getElementById("metricAccuracy").textContent = pct(metrics.accuracy);
+      document.getElementById("metricAuc").textContent = pct(metrics.auc);
+      document.getElementById("metricF1").textContent = pct(metrics.f1);
+      document.getElementById("metricCvF1").textContent = pct(metrics.cv_f1);
+      document.getElementById("metricBestModel").textContent = bestModel || "model";
+    }
+
+    function pct(v) {
+      return v != null ? (Number(v) * 100).toFixed(1) + "%" : "—";
+    }
+
+    function renderConfusionMatrix(cm) {
+      document.getElementById("supDetailGrid").style.display = "";
+      const oo = cm.actual_other?.predicted_other ?? 0;
+      const ok = cm.actual_other?.predicted_kiyora ?? 0;
+      const ko = cm.actual_kiyora?.predicted_other ?? 0;
+      const kk = cm.actual_kiyora?.predicted_kiyora ?? 0;
+      document.getElementById("confusionMatrix").innerHTML = `
+        <table class="cm-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Pred: Other</th>
+              <th>Pred: Kiyora</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Actual: Other</th>
+              <td class="hit">${formatter.format(oo)}</td>
+              <td class="miss">${formatter.format(ok)}</td>
+            </tr>
+            <tr>
+              <th>Actual: Kiyora</th>
+              <td class="miss">${formatter.format(ko)}</td>
+              <td class="hit">${formatter.format(kk)}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderModelBSegments(segments) {
+      document.getElementById("supDetailGrid").style.display = "";
+      if (!segments.length) {
+        document.getElementById("modelBSegments").innerHTML = `<div class="empty">No segments</div>`;
+        return;
+      }
+      const rows = segments.slice(0, 10).map((s) => `
+        <tr>
+          <td>${escapeHtml(s["Acne Level"] || s.acne_level || "")}</td>
+          <td>${escapeHtml(s["Income Group"] || s.income_group || "")}</td>
+          <td>${formatter.format(s.Total || s.total || 0)}</td>
+          <td>${formatter.format(s["Kiyora Users"] || s.kiyora_users || 0)}</td>
+          <td>${s["Kiyora %"] || s["kiyora_%"] || 0}%</td>
+        </tr>
+      `).join("");
+      document.getElementById("modelBSegments").innerHTML = `
+        <table class="seg-table">
+          <thead>
+            <tr>
+              <th>Acne Level</th>
+              <th>Income Group</th>
+              <th>Total</th>
+              <th>Kiyora</th>
+              <th>Kiyora %</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderKiyoraClusters(clusters) {
+      const panel = document.getElementById("kiyoraClustersPanel");
+      panel.style.display = "";
+      const clusterColors = ["#0f9f8e", "#d84f6a", "#5867d8"];
+      const cards = clusters.map((c, i) => {
+        const color = clusterColors[i % clusterColors.length];
+        const factors = (c.factor_scores || []).slice(0, 5);
+        const maxFactor = Math.max(...factors.map((f) => f.value), 1);
+        const barsHtml = factors.map((f) => `
+          <div class="cluster-card-bar-row">
+            <div class="cluster-card-bar-label" title="${escapeHtml(f.label)}">${escapeHtml(f.label)}</div>
+            <div class="track"><div class="bar" style="--w: ${(f.value / maxFactor * 100).toFixed(1)}%; --c: ${color}"></div></div>
+            <div class="bar-value" style="font-size:11px">${f.value.toFixed(1)}</div>
+          </div>
+        `).join("");
+        return `
+          <div class="cluster-card">
+            <div class="cluster-card-id">Cluster ${c.id}</div>
+            <div class="cluster-card-title">${escapeHtml(c.name)}</div>
+            <div class="cluster-card-stat">n = ${formatter.format(c.size)} users</div>
+            ${c.top_factor ? `<div class="cluster-card-stat">Top factor: ${escapeHtml(c.top_factor)}</div>` : ""}
+            ${factors.length ? `<div class="cluster-card-bars">${barsHtml}</div>` : ""}
+          </div>
+        `;
+      }).join("");
+      document.getElementById("kiyoraClusters").innerHTML = `<div class="cluster-cards">${cards}</div>`;
+    }
+
+    function renderBars(id, rows, mode = "count", palette = colors) {
+      const node = document.getElementById(id);
+      if (!rows.length) {
+        node.innerHTML = `<div class="empty">No data</div>`;
+        return;
+      }
+      const max = Math.max(...rows.map((row) => Number(row.value) || 0), 1);
+      node.innerHTML = rows.map((row, index) => {
+        const value = Number(row.value) || 0;
+        const width = Math.max((value / max) * 100, value > 0 ? 2 : 0);
+        const display = mode === "score" ? value.toFixed(value < 1 ? 3 : 2) : formatter.format(value);
+        const color = palette[index % palette.length];
+        return `
+          <div class="bar-row">
+            <div class="bar-label" title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</div>
+            <div class="track"><div class="bar" style="--w: ${width}%; --c: ${color}"></div></div>
+            <div class="bar-value">${display}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderClusterTable(rows) {
+      const node = document.getElementById("clusterTable");
+      if (!rows.length) {
+        node.innerHTML = `<div class="empty">No clusters</div>`;
+        return;
+      }
+      node.innerHTML = `
+        <table class="cluster-table">
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Size</th>
+              <th>Kiyora</th>
+              <th>Top brand</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row) => `
+              <tr>
+                <td><span class="tag">Cluster ${row.id}</span></td>
+                <td>${formatter.format(row.size)} <span class="panel-kicker">${row.share}%</span></td>
+                <td>${row.kiyora_share}%</td>
+                <td>${escapeHtml(row.top_brand || "Unknown")}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderEmpty(message) {
+      ["brandMix", "classBalance", "factorScores", "clusterTable", "featureImportance", "targetBalance", "silhouetteScores", "kiyoraClusterMix"].forEach((id) => {
+        document.getElementById(id).innerHTML = `<div class="empty">${escapeHtml(message)}</div>`;
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

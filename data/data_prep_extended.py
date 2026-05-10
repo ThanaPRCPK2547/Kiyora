@@ -1,11 +1,26 @@
+from pathlib import Path
+import os
+
+os.environ.setdefault("LOKY_MAX_CPU_COUNT", "1")
+
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import mutual_info_classif
 
-data = pd.read_csv('dataset_cleansing.csv')
-data = data.drop('Timestamp', axis=1)
+ROOT_DIR = Path(__file__).resolve().parents[1]
+DATA_CANDIDATES = [
+    ROOT_DIR / 'dataset_cleansing.csv',
+    ROOT_DIR / 'data' / 'dataset_cleansing.csv',
+    Path('/mnt/user-data/uploads/dataset_cleansing.csv'),
+]
+data_path = next((path for path in DATA_CANDIDATES if path.exists()), None)
+if data_path is None:
+    raise FileNotFoundError("dataset_cleansing.csv not found.")
+
+data = pd.read_csv(data_path)
+data = data.drop('Timestamp', axis=1, errors='ignore')
 
 # เปลี่ยนชื่อคอลัมน์
 rename_map = {
@@ -147,4 +162,4 @@ le_skin = LabelEncoder()
 data['skin_type_encoded'] = le_skin.fit_transform(data['skin_type'].astype(str))
 
 # Save prepared dataset
-data.to_csv('dataset_extended_prepared.csv', index=False)
+data.to_csv(Path.cwd() / 'dataset_extended_prepared.csv', index=False)

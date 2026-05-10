@@ -1,8 +1,11 @@
 from pathlib import Path
+import os
+import tempfile
 
-import pandas as pd
+os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "kiyora-matplotlib"))
+
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
+import pandas as pd
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -15,29 +18,40 @@ plt.rcParams['font.family'] = 'Tahoma'
 
 # โหลดข้อมูล
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = BASE_DIR / 'data' / 'dataset_extended_prepared.csv'
-data = pd.read_csv(DATA_PATH)
+DATA_CANDIDATES = [
+    BASE_DIR / 'dataset_extended_prepared.csv',
+    BASE_DIR / 'data' / 'dataset_extended_prepared.csv',
+    Path('/mnt/user-data/uploads/dataset_extended_prepared.csv'),
+]
+data_path = next((path for path in DATA_CANDIDATES if path.exists()), None)
+if data_path is None:
+    raise FileNotFoundError("dataset_extended_prepared.csv not found.")
+
+data = pd.read_csv(data_path)
 
 
 numeric_cols = data.select_dtypes(include='number').columns.tolist()
+target_kiyora = (
+    data['brand_primary'].astype(str).str.strip().str.casefold() == 'kiyora'
+).astype(int)
 X_train, X_test, y_train, y_test = train_test_split(
     data[numeric_cols],
-    data['brand_primary'],
+    target_kiyora,
     test_size=0.2,
-    random_state=42
+    random_state=42,
+    stratify=target_kiyora
 )
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-lr = LogisticRegression()
+lr = LogisticRegression(class_weight='balanced', max_iter=1000)
 lr.fit(X_train, y_train)
 y_pred = lr.predict(X_test)
-y_pred_proba = lr.predict_proba(X_test)
 
 # แสดงผลลัพธ์
-print(classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred, target_names=['Other Brand', 'Kiyora'], zero_division=0))
 print(confusion_matrix(y_test, y_pred))
 
 
