@@ -444,6 +444,19 @@
       color: #313b4d;
     }
 
+    .sup-main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .sup-right-stack {
+      display: grid;
+      gap: 12px;
+    }
+
     .view { display: none; }
     .view.active { display: block; }
 
@@ -475,14 +488,16 @@
       .nav button { width: auto; }
       .sidebar-meta { display: none; }
       .metrics,
-      .grid { grid-template-columns: 1fr 1fr; }
+      .grid,
+      .sup-main-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 700px) {
       .topbar,
       .split { display: grid; }
       .metrics,
-      .grid { grid-template-columns: 1fr; }
+      .grid,
+      .sup-main-grid { grid-template-columns: 1fr; }
       .bar-row {
         grid-template-columns: minmax(88px, 120px) minmax(0, 1fr) 48px;
       }
@@ -598,10 +613,10 @@
           <article class="metric">
             <div class="metric-label">CV F1</div>
             <div class="metric-value" id="metricCvF1">—</div>
-            <div class="metric-note">5-fold</div>
+            <div class="metric-note">5-fold cross-val</div>
           </article>
         </div>
-        <div class="grid">
+        <div class="sup-main-grid">
           <article class="panel">
             <div class="panel-header">
               <h2>Feature Importance</h2>
@@ -609,30 +624,32 @@
             </div>
             <div class="chart-list" id="featureImportance"></div>
           </article>
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Target Balance</h2>
-              <span class="panel-kicker">classification</span>
-            </div>
-            <div class="chart-list" id="targetBalance"></div>
-          </article>
+          <div class="sup-right-stack">
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Confusion Matrix</h2>
+                <span class="panel-kicker">Model A · test set</span>
+              </div>
+              <div id="confusionMatrix">
+                <div class="empty" style="min-height:110px;font-size:12px">ยังไม่มีผล — run model/sup.py</div>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Class Balance</h2>
+                <span class="panel-kicker">Kiyora vs Other</span>
+              </div>
+              <div class="chart-list" id="targetBalance"></div>
+            </article>
+          </div>
         </div>
-        <div class="grid" id="supDetailGrid" style="display:none; margin-top:12px">
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Confusion Matrix</h2>
-              <span class="panel-kicker">Model A</span>
-            </div>
-            <div id="confusionMatrix"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Acne × Income Segments</h2>
-              <span class="panel-kicker">Model B cross-analysis</span>
-            </div>
-            <div id="modelBSegments"></div>
-          </article>
-        </div>
+        <article class="panel" id="modelBPanel" style="display:none; margin-top:0">
+          <div class="panel-header">
+            <h2>Acne × Income Segments</h2>
+            <span class="panel-kicker">Model B · cross-analysis</span>
+          </div>
+          <div id="modelBSegments"></div>
+        </article>
       </section>
 
       <section class="view" data-view="unsupervised">
@@ -760,7 +777,6 @@
     }
 
     function renderConfusionMatrix(cm) {
-      document.getElementById("supDetailGrid").style.display = "";
       const oo = cm.actual_other?.predicted_other ?? 0;
       const ok = cm.actual_other?.predicted_kiyora ?? 0;
       const ko = cm.actual_kiyora?.predicted_other ?? 0;
@@ -791,7 +807,7 @@
     }
 
     function renderModelBSegments(segments) {
-      document.getElementById("supDetailGrid").style.display = "";
+      document.getElementById("modelBPanel").style.display = "";
       if (!segments.length) {
         document.getElementById("modelBSegments").innerHTML = `<div class="empty">No segments</div>`;
         return;
