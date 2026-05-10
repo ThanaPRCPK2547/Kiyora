@@ -35,6 +35,19 @@ def read_root():
         return FileResponse(index_path)
     return read_api_info()
 
+@app.get("/api/debug-path", include_in_schema=False)
+def debug_path():
+    import os
+    cwd = Path.cwd()
+    return {
+        "__file__": str(Path(__file__).resolve()),
+        "ROOT_DIR": str(ROOT_DIR),
+        "PUBLIC_DIR": str(PUBLIC_DIR),
+        "index_exists": (PUBLIC_DIR / "index.html").exists(),
+        "cwd": str(cwd),
+        "cwd_ls": sorted(os.listdir(str(cwd)))[:20],
+    }
+
 @app.get("/api")
 def read_api_info():
     return {
