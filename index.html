@@ -766,20 +766,23 @@ function renderUnsupervised() {
     </div>`).join('');
 
   const withF  = clusters.filter(c => c.factor_scores?.length);
-  const fCards = withF.map((c,i) => `
+  const fCards = withF.map((c) => {
+    const ci = c.id;
+    return `
     <div class="glass rounded-2xl p-5">
-      <p class="serif-display font-[600] text-[15px] mb-4 ${CL_COLORS[i]||'text-sky-500'}">${esc(c.name)}</p>
+      <p class="serif-display font-[600] text-[15px] mb-4 ${CL_COLORS[ci]||'text-sky-500'}">${esc(c.name)}</p>
       <div class="space-y-2.5">
         ${c.factor_scores.map(f=>`
           <div class="grid gap-2.5 items-center" style="grid-template-columns:minmax(88px,150px) 1fr 32px">
             <div class="text-xs text-slate-500 truncate">${esc(f.label)}</div>
             <div class="h-1.5 rounded-full bg-pink-100 overflow-hidden">
-              <div class="bar-fill h-full rounded-full bg-gradient-to-r ${CL_GRAD[i]||CL_GRAD[0]}" style="--w:${(f.value/5*100).toFixed(1)}%"></div>
+              <div class="bar-fill h-full rounded-full bg-gradient-to-r ${CL_GRAD[ci]||CL_GRAD[0]}" style="--w:${(f.value/5*100).toFixed(1)}%"></div>
             </div>
             <div class="text-xs text-slate-400 text-right">${f.value.toFixed(1)}</div>
           </div>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const silHtml = buildSilhouette(silRows);
 
