@@ -1,938 +1,859 @@
 <!doctype html>
-<html lang="en">
+<html lang="th" class="scroll-smooth">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kiyora ML Dashboard</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f5f7fb;
-      --panel: #ffffff;
-      --panel-2: #f8fafc;
-      --text: #18202f;
-      --muted: #647084;
-      --line: #dce3ed;
-      --teal: #0f9f8e;
-      --indigo: #5867d8;
-      --amber: #d99121;
-      --rose: #d84f6a;
-      --blue: #1f7acb;
-      --shadow: 0 14px 30px rgba(24, 32, 47, 0.08);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      letter-spacing: 0;
-    }
-
-    button { font: inherit; }
-
-    .shell {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 236px minmax(0, 1fr);
-    }
-
-    .sidebar {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      padding: 22px 18px;
-      border-right: 1px solid var(--line);
-      background: #101725;
-      color: #f7f9fc;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-height: 40px;
-      font-weight: 760;
-    }
-
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      display: grid;
-      place-items: center;
-      border-radius: 8px;
-      background: #dff7f2;
-      color: #0d756c;
-      font-weight: 800;
-    }
-
-    .nav {
-      display: grid;
-      gap: 6px;
-      margin-top: 28px;
-    }
-
-    .nav button {
-      width: 100%;
-      min-height: 38px;
-      border: 0;
-      border-radius: 8px;
-      padding: 0 12px;
-      background: transparent;
-      color: #b9c3d1;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .nav button[aria-selected="true"] {
-      background: #1d2a3d;
-      color: #ffffff;
-    }
-
-    .sidebar-meta {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 18px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      color: #aab6c7;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .main {
-      min-width: 0;
-      padding: 24px clamp(18px, 3vw, 34px) 34px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: flex-start;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0 0 6px;
-      font-size: clamp(24px, 3vw, 34px);
-      line-height: 1.1;
-      letter-spacing: 0;
-    }
-
-    .subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .status {
-      min-height: 34px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--teal);
-    }
-
-    .refresh {
-      min-height: 34px;
-      border: 0;
-      border-radius: 8px;
-      padding: 0 12px;
-      background: #18202f;
-      color: #ffffff;
-      cursor: pointer;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .metric,
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-    }
-
-    .metric {
-      min-height: 106px;
-      padding: 16px;
-      display: grid;
-      align-content: space-between;
-    }
-
-    .metric-label {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .metric-value {
-      font-size: clamp(26px, 3vw, 34px);
-      line-height: 1;
-      font-weight: 760;
-      letter-spacing: 0;
-    }
-
-    .metric-note {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
-      gap: 12px;
-      align-items: start;
-    }
-
-    .panel {
-      min-width: 0;
-      padding: 16px;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .panel h2 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: 0;
-    }
-
-    .panel-kicker {
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    .chart-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .bar-row {
-      display: grid;
-      grid-template-columns: minmax(96px, 170px) minmax(0, 1fr) 58px;
-      gap: 10px;
-      align-items: center;
-      font-size: 13px;
-    }
-
-    .bar-label {
-      min-width: 0;
-      color: #313b4d;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .track {
-      height: 10px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: #e8edf4;
-    }
-
-    .bar {
-      height: 100%;
-      width: var(--w);
-      min-width: 2px;
-      border-radius: 999px;
-      background: var(--c, var(--teal));
-    }
-
-    .bar-value {
-      text-align: right;
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .split {
-      display: grid;
-      grid-template-columns: 160px minmax(0, 1fr);
-      gap: 16px;
-      align-items: center;
-    }
-
-    .donut {
-      width: 144px;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: conic-gradient(var(--teal) calc(var(--p) * 1%), #e8edf4 0);
-      display: grid;
-      place-items: center;
-      margin: 0 auto;
-    }
-
-    .donut::after {
-      content: attr(data-label);
-      width: 92px;
-      aspect-ratio: 1;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: var(--panel);
-      color: var(--text);
-      font-size: 24px;
-      font-weight: 760;
-      box-shadow: inset 0 0 0 1px var(--line);
-    }
-
-    .cluster-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .cluster-table th,
-    .cluster-table td {
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    .cluster-table th {
-      color: var(--muted);
-      font-weight: 650;
-      background: var(--panel-2);
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3e4bb8;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    .cm-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      margin-top: 4px;
-    }
-
-    .cm-table th,
-    .cm-table td {
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      text-align: center;
-    }
-
-    .cm-table th {
-      background: var(--panel-2);
-      color: var(--muted);
-      font-weight: 650;
-    }
-
-    .cm-table td.hit { background: #e6f7f5; color: #0a6b62; font-weight: 700; }
-    .cm-table td.miss { background: #fff3f5; color: #9e3247; }
-
-    .seg-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    .seg-table th,
-    .seg-table td {
-      padding: 7px 8px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-    }
-
-    .seg-table th {
-      color: var(--muted);
-      font-weight: 650;
-      background: var(--panel-2);
-      white-space: nowrap;
-    }
-
-    .seg-table td:last-child { text-align: right; }
-
-    .cluster-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-    }
-
-    .cluster-card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      background: var(--panel-2);
-    }
-
-    .cluster-card-title {
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .cluster-card-id {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3e4bb8;
-      margin-bottom: 8px;
-    }
-
-    .cluster-card-stat {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .cluster-card-bars {
-      margin-top: 10px;
-      display: grid;
-      gap: 5px;
-    }
-
-    .cluster-card-bar-row {
-      display: grid;
-      grid-template-columns: 110px minmax(0,1fr) 32px;
-      gap: 6px;
-      align-items: center;
-      font-size: 11px;
-    }
-
-    .cluster-card-bar-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: #313b4d;
-    }
-
-    .sup-main-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
-      gap: 12px;
-      align-items: start;
-      margin-bottom: 12px;
-    }
-
-    .sup-right-stack {
-      display: grid;
-      gap: 12px;
-    }
-
-    .view { display: none; }
-    .view.active { display: block; }
-
-    .empty {
-      min-height: 260px;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      color: var(--muted);
-      border: 1px dashed var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-    }
-
-    @media (max-width: 980px) {
-      .shell { grid-template-columns: 1fr; }
-      .sidebar {
-        position: static;
-        height: auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-      }
-      .nav {
-        display: flex;
-        margin-top: 0;
-      }
-      .nav button { width: auto; }
-      .sidebar-meta { display: none; }
-      .metrics,
-      .grid,
-      .sup-main-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 700px) {
-      .topbar,
-      .split { display: grid; }
-      .metrics,
-      .grid,
-      .sup-main-grid { grid-template-columns: 1fr; }
-      .bar-row {
-        grid-template-columns: minmax(88px, 120px) minmax(0, 1fr) 48px;
+  <title>Kiyora Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'ui-serif', 'serif'],
+            sans:  ['Noto Sans Thai', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        }
       }
     }
+  </script>
+  <style type="text/tailwindcss">
+    @layer base {
+      ::-webkit-scrollbar { @apply w-1.5; }
+      ::-webkit-scrollbar-track { background: #fdf8f6; }
+      ::-webkit-scrollbar-thumb { @apply rounded-full; background: rgba(244,114,182,.35); }
+      body { background: #fdf8f6; }
+    }
+    @layer utilities {
+      .grad-text {
+        background: linear-gradient(135deg, #f472b6, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .glass   { @apply bg-white/80 backdrop-blur-xl border border-rose-100 shadow-sm; }
+      .glass-b { @apply bg-white/90 backdrop-blur-xl border border-pink-100 shadow-md; }
+      .bar-fill { width: var(--w, 0%); }
+      .page          { display: none; }
+      .page.active   { display: block; }
+      .tab-panel        { display: none; }
+      .tab-panel.active { display: block; }
+      .result-box       { display: none; }
+      .result-box.show  { display: block; }
+      .serif-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+    }
+    input[type="range"] {
+      @apply w-full h-[3px] appearance-none rounded-full outline-none cursor-pointer;
+      background: rgba(244,114,182,.18);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none; width:14px; height:14px; border-radius:50%;
+      background:#f472b6;
+      box-shadow:0 0 0 3px rgba(244,114,182,.18), 0 0 8px rgba(244,114,182,.28);
+    }
+    select option { background:#fff; color:#1e293b; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    @keyframes spin   { to{transform:rotate(360deg)} }
+    .anim-up  { animation: fadeUp .35s ease; }
+    .spin-anim{ animation: spin .7s linear infinite; }
   </style>
 </head>
-<body>
-  <div class="shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <span class="brand-mark">K</span>
-        <span>Kiyora ML</span>
+<body class="text-slate-800 font-sans min-h-screen antialiased pt-[60px]">
+
+<!-- ── Safelist (hidden) ───────────────────────────────────── -->
+<div class="hidden">
+  <div class="bg-green-50 text-green-600 font-bold text-2xl bg-red-50 text-red-500 text-xl"></div>
+  <div class="text-sky-500 text-slate-400 text-purple-500 text-rose-400"></div>
+  <div class="border-t-sky-300 border-t-slate-300 border-t-purple-300"></div>
+  <div class="bg-sky-50 bg-slate-50 bg-purple-50 bg-rose-50"></div>
+  <div class="border-sky-200 border-slate-200 border-purple-200 border-rose-200"></div>
+  <div class="from-sky-400 to-cyan-300 from-slate-400 to-slate-300 from-purple-400 to-pink-300"></div>
+  <div class="bg-green-50 border-green-200 bg-blue-50 border-blue-200 bg-amber-50 border-amber-200"></div>
+  <div class="from-pink-400 to-rose-300 from-amber-400 to-yellow-300"></div>
+  <div class="font-semibold text-slate-600 text-slate-500 text-pink-500"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAV
+══════════════════════════════════════════════════════════ -->
+<nav class="fixed top-0 inset-x-0 z-50 h-[60px] bg-white/85 backdrop-blur-xl border-b border-rose-100/60 flex items-center">
+  <div class="max-w-6xl w-full mx-auto px-7 flex items-center justify-between">
+    <div class="flex items-center gap-2.5 cursor-pointer select-none" onclick="go('home')">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 grid place-items-center text-white text-[13px] font-bold shadow-sm shadow-pink-200/70">K</div>
+      <span class="serif-display text-[19px] font-[600] tracking-tight text-slate-800">Kiyora</span>
+    </div>
+    <div class="flex gap-0.5" id="nav-links">
+      <button data-page="home"       onclick="go('home')"        class="nav-btn px-[18px] py-1.5 rounded-lg text-[13.5px] font-medium text-slate-400 transition-all duration-200 hover:bg-rose-50 hover:text-rose-400">หน้าหลัก</button>
+      <button data-page="playground" onclick="go('playground')"  class="nav-btn px-[18px] py-1.5 rounded-lg text-[13.5px] font-medium text-slate-400 transition-all duration-200 hover:bg-rose-50 hover:text-rose-400">ทดสอบโมเดล</button>
+      <button data-page="dashboard"  onclick="go('dashboard')"   class="nav-btn px-[18px] py-1.5 rounded-lg text-[13.5px] font-medium text-slate-400 transition-all duration-200 hover:bg-rose-50 hover:text-rose-400">Dashboard</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     HOME
+══════════════════════════════════════════════════════════ -->
+<div id="page-home" class="page active">
+
+  <!-- Hero -->
+  <div class="relative overflow-hidden border-b border-rose-100/50"
+       style="background:radial-gradient(ellipse 75% 60% at 8% -8%,rgba(244,114,182,.1) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 92% 108%,rgba(192,132,252,.09) 0%,transparent 55%),radial-gradient(ellipse 65% 55% at 50% 50%,rgba(186,230,253,.06) 0%,transparent 60%),#fdf8f6">
+    <div class="absolute -top-24 -right-20 w-[380px] h-[380px] rounded-full bg-pink-100/40 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-16 left-10 w-[280px] h-[280px] rounded-full bg-purple-100/30 blur-3xl pointer-events-none"></div>
+
+    <div class="relative max-w-6xl mx-auto px-7 py-24 lg:py-28">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-50 border border-pink-100 text-pink-400 text-[11px] font-semibold tracking-[0.07em] uppercase mb-6">
+        <span class="w-1.5 h-1.5 rounded-full bg-pink-400" style="box-shadow:0 0 6px #f472b6"></span>
+        Kiyora Cleansing Water · ML Research
       </div>
-      <nav class="nav" aria-label="Dashboard views">
-        <button type="button" data-view-button="overview" aria-selected="true">Overview</button>
-        <button type="button" data-view-button="supervised" aria-selected="false">Supervised</button>
-        <button type="button" data-view-button="unsupervised" aria-selected="false">Unsupervised</button>
-      </nav>
-      <div class="sidebar-meta">
-        <div id="sourceLabel">Source: loading</div>
-        <div>FastAPI on Vercel</div>
+      <h1 class="serif-display text-[clamp(40px,5.8vw,70px)] font-[500] leading-[1.1] mb-5 text-slate-800 tracking-[-0.01em]">
+        วิเคราะห์ผู้ใช้<br>
+        <em class="grad-text not-italic">Kiyora</em><br>
+        ด้วย Machine Learning
+      </h1>
+      <p class="text-slate-500 text-[15.5px] font-light max-w-[460px] leading-[1.9] mb-9">
+        ระบบวิเคราะห์ข้อมูลแบบสำรวจ 129 คน เพื่อทำความเข้าใจโปรไฟล์ผู้ใช้ Kiyora Cleansing Water ผ่าน Supervised และ Unsupervised Learning
+      </p>
+      <div class="flex gap-3 flex-wrap">
+        <button onclick="go('playground')"
+          class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 text-white font-medium text-[13.5px] shadow-md shadow-pink-200/60 hover:shadow-pink-200/80 hover:-translate-y-0.5 transition-all duration-200">
+          ทดสอบโมเดล
+        </button>
+        <button onclick="go('dashboard')"
+          class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-rose-200 text-rose-400 font-medium text-[13.5px] hover:bg-rose-50 hover:-translate-y-0.5 transition-all duration-200">
+          ดู Dashboard
+        </button>
       </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <h1>Dashboard Overview</h1>
-          <p class="subtitle">Supervised and unsupervised model signals for Kiyora cleansing survey data.</p>
-        </div>
-        <div class="toolbar">
-          <div class="status"><span class="status-dot"></span><span id="statusText">Loading data</span></div>
-          <button class="refresh" type="button" id="refreshButton">Refresh</button>
-        </div>
-      </header>
-
-      <section class="metrics" aria-label="Key metrics">
-        <article class="metric">
-          <div class="metric-label">Respondents</div>
-          <div class="metric-value" id="metricRows">0</div>
-          <div class="metric-note" id="metricColumns">0 columns</div>
-        </article>
-        <article class="metric">
-          <div class="metric-label">Kiyora Users</div>
-          <div class="metric-value" id="metricKiyora">0</div>
-          <div class="metric-note" id="metricKiyoraShare">0%</div>
-        </article>
-        <article class="metric">
-          <div class="metric-label">Feature Count</div>
-          <div class="metric-value" id="metricFeatures">0</div>
-          <div class="metric-note">supervised candidates</div>
-        </article>
-        <article class="metric">
-          <div class="metric-label">Clusters</div>
-          <div class="metric-value" id="metricClusters">0</div>
-          <div class="metric-note" id="metricClusterFeatures">0 features</div>
-        </article>
-      </section>
-
-      <section class="view active" data-view="overview">
-        <div class="grid">
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Brand Mix</h2>
-              <span class="panel-kicker">primary brand</span>
-            </div>
-            <div class="chart-list" id="brandMix"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Kiyora Share</h2>
-              <span class="panel-kicker">target balance</span>
-            </div>
-            <div class="split">
-              <div class="donut" id="kiyoraDonut" style="--p: 0" data-label="0%"></div>
-              <div class="chart-list" id="classBalance"></div>
-            </div>
-          </article>
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Purchase Factors</h2>
-              <span class="panel-kicker">mean score</span>
-            </div>
-            <div class="chart-list" id="factorScores"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Cluster Spread</h2>
-              <span class="panel-kicker">unsupervised</span>
-            </div>
-            <div id="clusterTable"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" data-view="supervised">
-        <div class="metrics" id="modelMetrics" style="display:none; margin-bottom:16px">
-          <article class="metric">
-            <div class="metric-label">Accuracy</div>
-            <div class="metric-value" id="metricAccuracy">—</div>
-            <div class="metric-note" id="metricBestModel">best model</div>
-          </article>
-          <article class="metric">
-            <div class="metric-label">AUC</div>
-            <div class="metric-value" id="metricAuc">—</div>
-            <div class="metric-note">ROC AUC</div>
-          </article>
-          <article class="metric">
-            <div class="metric-label">F1 Score</div>
-            <div class="metric-value" id="metricF1">—</div>
-            <div class="metric-note">test set</div>
-          </article>
-          <article class="metric">
-            <div class="metric-label">CV F1</div>
-            <div class="metric-value" id="metricCvF1">—</div>
-            <div class="metric-note">5-fold cross-val</div>
-          </article>
-        </div>
-        <div class="sup-main-grid">
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Feature Importance</h2>
-              <span class="panel-kicker" id="supModelName">model</span>
-            </div>
-            <div class="chart-list" id="featureImportance"></div>
-          </article>
-          <div class="sup-right-stack">
-            <article class="panel">
-              <div class="panel-header">
-                <h2>Confusion Matrix</h2>
-                <span class="panel-kicker">Model A · test set</span>
-              </div>
-              <div id="confusionMatrix">
-                <div class="empty" style="min-height:110px;font-size:12px">ยังไม่มีผล — run model/sup.py</div>
-              </div>
-            </article>
-            <article class="panel">
-              <div class="panel-header">
-                <h2>Class Balance</h2>
-                <span class="panel-kicker">Kiyora vs Other</span>
-              </div>
-              <div class="chart-list" id="targetBalance"></div>
-            </article>
-          </div>
-        </div>
-        <article class="panel" id="modelBPanel" style="display:none; margin-top:0">
-          <div class="panel-header">
-            <h2>Acne × Income Segments</h2>
-            <span class="panel-kicker">Model B · cross-analysis</span>
-          </div>
-          <div id="modelBSegments"></div>
-        </article>
-      </section>
-
-      <section class="view" data-view="unsupervised">
-        <div class="grid">
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Silhouette Scores</h2>
-              <span class="panel-kicker">k selection</span>
-            </div>
-            <div class="chart-list" id="silhouetteScores"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-header">
-              <h2>Kiyora by Cluster</h2>
-              <span class="panel-kicker">user count</span>
-            </div>
-            <div class="chart-list" id="kiyoraClusterMix"></div>
-          </article>
-        </div>
-        <article class="panel" id="kiyoraClustersPanel" style="display:none; margin-top:12px">
-          <div class="panel-header">
-            <h2>Kiyora Cluster Profiles</h2>
-            <span class="panel-kicker">pre-trained · k=3</span>
-          </div>
-          <div id="kiyoraClusters"></div>
-        </article>
-      </section>
-    </main>
+    </div>
   </div>
 
-  <script>
-    const colors = ["#0f9f8e", "#5867d8", "#d99121", "#d84f6a", "#1f7acb", "#7a5fb8"];
-    const formatter = new Intl.NumberFormat("en-US");
+  <!-- Stats -->
+  <div class="border-b border-rose-100/40 py-12 bg-white/40 backdrop-blur-sm">
+    <div class="max-w-6xl mx-auto px-7 grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-    document.querySelectorAll("[data-view-button]").forEach((button) => {
-      button.addEventListener("click", () => setView(button.dataset.viewButton));
+      <div class="relative glass rounded-2xl p-5 overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50">
+        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-2xl"></div>
+        <p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400 mb-3">ผู้ตอบแบบสอบถาม</p>
+        <p class="serif-display text-4xl font-[600] text-rose-400 leading-none" id="h-rows">—</p>
+        <p class="text-xs text-slate-300 mt-1.5">รายการข้อมูล</p>
+      </div>
+
+      <div class="relative glass rounded-2xl p-5 overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50">
+        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-2xl"></div>
+        <p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400 mb-3">ผู้ใช้ Kiyora</p>
+        <p class="serif-display text-4xl font-[600] text-rose-400 leading-none" id="h-kiyora">—</p>
+        <p class="text-xs text-slate-300 mt-1.5" id="h-share">จากทั้งหมด</p>
+      </div>
+
+      <div class="relative glass rounded-2xl p-5 overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50">
+        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-2xl"></div>
+        <p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400 mb-3">Accuracy (Model A)</p>
+        <p class="serif-display text-4xl font-[600] text-rose-400 leading-none" id="h-acc">—</p>
+        <p class="text-xs text-slate-300 mt-1.5" id="h-model">Random Forest</p>
+      </div>
+
+      <div class="relative glass rounded-2xl p-5 overflow-hidden transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50">
+        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-2xl"></div>
+        <p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400 mb-3">AUC Score</p>
+        <p class="serif-display text-4xl font-[600] text-rose-400 leading-none" id="h-auc">—</p>
+        <p class="text-xs text-slate-300 mt-1.5">ROC AUC</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="py-16">
+    <div class="max-w-6xl mx-auto px-7">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/80 mb-2">Features</p>
+      <h2 class="serif-display text-[28px] font-[500] tracking-tight mb-8 flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-6 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        มีอะไรในระบบนี้
+      </h2>
+      <div class="grid md:grid-cols-3 gap-5">
+
+        <div onclick="go('dashboard');setTimeout(()=>switchTab('supervised'),60)"
+          class="glass rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50 hover:-translate-y-1 group">
+          <div class="w-10 h-10 rounded-xl bg-pink-50 border border-pink-100 grid place-items-center text-lg mb-4 group-hover:border-pink-200 transition-colors">📊</div>
+          <h3 class="serif-display font-[600] text-[16px] mb-2 text-slate-800">Supervised Dashboard</h3>
+          <p class="text-slate-500 text-[13px] leading-relaxed">ดูผลการเทรน Random Forest และ SVM สำหรับจำแนก Kiyora vs แบรนด์อื่น พร้อม Confusion Matrix, Metrics 5 ตัว และ Segment Analysis</p>
+        </div>
+
+        <div onclick="go('dashboard');setTimeout(()=>switchTab('unsupervised'),60)"
+          class="glass rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50 hover:-translate-y-1 group">
+          <div class="w-10 h-10 rounded-xl bg-pink-50 border border-pink-100 grid place-items-center text-lg mb-4 group-hover:border-pink-200 transition-colors">🗂️</div>
+          <h3 class="serif-display font-[600] text-[16px] mb-2 text-slate-800">Unsupervised Dashboard</h3>
+          <p class="text-slate-500 text-[13px] leading-relaxed">ดู K-Means Cluster ของผู้ใช้ Kiyora ทั้ง 3 กลุ่ม พร้อม Factor Profile แต่ละ Cluster และ Silhouette Score Analysis</p>
+        </div>
+
+        <div onclick="go('playground')"
+          class="glass rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-pink-200 hover:shadow-md hover:shadow-pink-50 hover:-translate-y-1 group">
+          <div class="w-10 h-10 rounded-xl bg-pink-50 border border-pink-100 grid place-items-center text-lg mb-4 group-hover:border-pink-200 transition-colors">🧪</div>
+          <h3 class="serif-display font-[600] text-[16px] mb-2 text-slate-800">Model Playground</h3>
+          <p class="text-slate-500 text-[13px] leading-relaxed">เลือกระดับสิวและรายได้เพื่อหา Segment และ Cluster ที่ใกล้เคียงที่สุด พร้อมปรับ Factor Rating ให้ละเอียดยิ่งขึ้น</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="border-t border-rose-100/40 py-5 text-center text-slate-400 text-[12px] bg-white/30">
+    Kiyora Analytics · FastAPI + Supabase · Vercel
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PLAYGROUND
+══════════════════════════════════════════════════════════ -->
+<div id="page-playground" class="page">
+
+  <!-- Header -->
+  <div class="bg-white/60 backdrop-blur-sm border-b border-rose-100/50 py-8">
+    <div class="max-w-6xl mx-auto px-7">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/80 mb-2">Playground</p>
+      <h1 class="serif-display text-[26px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-6 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        ทดสอบโมเดล
+      </h1>
+      <p class="text-slate-400 text-[13.5px] mt-1.5 pl-[15px]">เลือกระดับสิวและรายได้เพื่อหา Segment และ Cluster ที่ตรงกับโปรไฟล์ของคุณ</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-7 py-8 pb-16">
+
+    <!-- Profile input strip -->
+    <div class="glass rounded-2xl p-5 mb-6">
+      <p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-pink-400/70 mb-4">เลือกโปรไฟล์ของคุณ</p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 tracking-wide mb-2">ระดับสิว</label>
+          <select id="pg-acne" onchange="onProfile()"
+            class="w-full px-4 py-2.5 rounded-xl bg-white border border-rose-100 text-slate-700 text-[14px] focus:outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100 transition-all appearance-none cursor-pointer shadow-sm"
+            style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23f472b6%22 d=%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;background-color:white">
+            <option value="">— เลือกระดับสิว —</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 tracking-wide mb-2">รายได้ต่อเดือน</label>
+          <select id="pg-income" onchange="onProfile()"
+            class="w-full px-4 py-2.5 rounded-xl bg-white border border-rose-100 text-slate-700 text-[14px] focus:outline-none focus:border-pink-300 focus:ring-2 focus:ring-pink-100 transition-all appearance-none cursor-pointer shadow-sm"
+            style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22%3E%3Cpath fill=%22%23f472b6%22 d=%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;background-color:white">
+            <option value="">— เลือกช่วงรายได้ —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results grid -->
+    <div class="grid lg:grid-cols-2 gap-5">
+
+      <!-- Card A: Segment -->
+      <div class="glass rounded-2xl p-6 transition-all duration-300 hover:border-pink-200">
+        <div class="flex items-center gap-2.5 mb-1">
+          <div class="w-7 h-7 rounded-lg bg-pink-50 border border-pink-100 grid place-items-center text-sm flex-shrink-0">🎯</div>
+          <span class="font-semibold text-[14.5px] text-slate-800">Segment Analysis</span>
+        </div>
+        <p class="text-slate-400 text-[12.5px] mb-5 pb-4 border-b border-rose-100/50">สัดส่วนผู้ใช้ Kiyora ในกลุ่มที่มีระดับสิวและรายได้เดียวกับคุณ (จาก Model B)</p>
+
+        <div id="seg-empty" class="text-slate-400 text-[13px] text-center py-8">
+          ← เลือกระดับสิวและรายได้เพื่อดูผล
+        </div>
+
+        <div class="result-box anim-up rounded-xl p-4 border bg-rose-50 border-rose-200" id="seg-result">
+          <p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-pink-400/70 mb-2">ผล Segment</p>
+          <p class="serif-display text-2xl font-[600] text-rose-500 mb-1" id="seg-main">—</p>
+          <p class="text-xs text-slate-400" id="seg-note">—</p>
+          <div class="mt-3 h-1.5 rounded-full bg-pink-100 overflow-hidden">
+            <div id="seg-bar" class="bar-fill h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-400 transition-all duration-700"></div>
+          </div>
+        </div>
+
+        <div id="seg-breakdown" class="mt-4 hidden">
+          <p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400 mb-3">เปรียบเทียบทุกช่วงรายได้ (ระดับสิวเดียวกัน)</p>
+          <div id="seg-breakdown-bars" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Card B: Cluster Finder -->
+      <div class="glass rounded-2xl p-6 transition-all duration-300 hover:border-pink-200">
+        <div class="flex items-center gap-2.5 mb-1">
+          <div class="w-7 h-7 rounded-lg bg-pink-50 border border-pink-100 grid place-items-center text-sm flex-shrink-0">🔍</div>
+          <span class="font-semibold text-[14.5px] text-slate-800">Cluster Finder</span>
+        </div>
+        <p class="text-slate-400 text-[12.5px] mb-5 pb-4 border-b border-rose-100/50">ปรับคะแนนความสำคัญของปัจจัย (1–5) ระดับสิวจะนำมาคำนวณร่วมด้วย กดปุ่มเพื่อดูผล</p>
+
+        <div id="pg-sliders" class="space-y-3">
+          <div class="flex items-center gap-3 py-8 justify-center text-slate-400 text-sm">
+            <div class="w-4 h-4 rounded-full border-2 border-rose-200 border-t-pink-400 spin-anim"></div>
+            กำลังโหลด…
+          </div>
+        </div>
+
+        <button onclick="findCluster()"
+          class="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 text-white font-medium text-sm shadow-md shadow-pink-200/50 hover:shadow-pink-200/70 hover:-translate-y-0.5 transition-all duration-200">
+          คำนวณ Cluster
+        </button>
+
+        <div class="result-box mt-4 anim-up rounded-xl p-4 border bg-rose-50 border-rose-200" id="cluster-result">
+          <p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-pink-400/70 mb-2">Cluster ที่ใกล้เคียงที่สุด</p>
+          <p class="serif-display text-2xl font-[600] text-slate-800 mb-1" id="cluster-main">—</p>
+          <p class="text-xs text-slate-400 mb-3" id="cluster-note">—</p>
+          <div id="cluster-factors" class="space-y-2"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════════════════════════ -->
+<div id="page-dashboard" class="page">
+
+  <!-- Header -->
+  <div class="bg-white/60 backdrop-blur-sm border-b border-rose-100/50 py-8">
+    <div class="max-w-6xl mx-auto px-7">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/80 mb-2">Analytics Dashboard</p>
+      <h1 class="serif-display text-[26px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-6 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        ผลการวิเคราะห์โมเดล
+      </h1>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-7 py-7 pb-16">
+    <!-- Tab Bar -->
+    <div class="flex border-b border-rose-100 mb-7" id="dash-tabs">
+      <button id="tb-sup" onclick="switchTab('supervised')"
+        class="tab-btn px-6 py-3 text-sm font-semibold text-pink-500 relative transition-colors duration-200">
+        📊 Supervised Learning
+        <span class="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-gradient-to-r from-pink-400 to-rose-300 rounded-full"></span>
+      </button>
+      <button id="tb-unsup" onclick="switchTab('unsupervised')"
+        class="tab-btn px-6 py-3 text-sm font-semibold text-slate-400 relative transition-colors duration-200 hover:text-slate-600">
+        🗂️ Unsupervised Learning
+      </button>
+    </div>
+
+    <div class="tab-panel active" id="tab-supervised">
+      <div id="sup-content">
+        <div class="flex items-center justify-center gap-3 py-20 text-slate-400">
+          <div class="w-5 h-5 rounded-full border-2 border-rose-200 border-t-pink-400 spin-anim"></div>
+          กำลังโหลด…
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-unsupervised">
+      <div id="unsup-content">
+        <div class="flex items-center justify-center gap-3 py-20 text-slate-400">
+          <div class="w-5 h-5 rounded-full border-2 border-rose-200 border-t-pink-400 spin-anim"></div>
+          กำลังโหลด…
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── STATE ───────────────────────────────────── */
+let supData   = null;
+let unsupData = null;
+let overData  = null;
+let curPage   = 'home';
+let curTab    = 'supervised';
+
+const CLUSTER_DESC = {
+  0: 'ผู้ใช้ทั่วไปที่เน้นการล้างสะอาดอย่างอ่อนโยน ใส่ใจเรื่องผิวแพ้ง่ายและความอ่อนโยน',
+  1: 'กลุ่มที่ไม่ได้ใช้ Cleansing Water เป็นหลัก ความสำคัญของปัจจัยต่างๆ ต่ำกว่าค่าเฉลี่ย',
+  2: 'ผู้มีปัญหาสิวและผิวแพ้ง่าย เน้นสูตรที่ปลอดภัย ลดสิว และอ่อนโยนสูงสุด',
+};
+const CL_COLORS = ['text-sky-500',  'text-slate-400',  'text-purple-500'];
+const CL_BORDER = ['border-t-sky-300','border-t-slate-300','border-t-purple-300'];
+const CL_BG     = ['bg-sky-50',    'bg-slate-50',    'bg-purple-50'];
+const CL_BORD   = ['border-sky-200','border-slate-200','border-purple-200'];
+const CL_GRAD   = [
+  'from-sky-400 to-cyan-300',
+  'from-slate-400 to-slate-300',
+  'from-purple-400 to-pink-300',
+];
+const ACNE_TO_NUM = {
+  'ไม่มี/น้อยมาก': 0, 'สิวเล็กน้อย': 1,
+  'สิวปานกลาง': 2,   'สิวรุนแรง': 3,
+};
+
+/* ── NAV ─────────────────────────────────────── */
+function go(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('bg-pink-50','text-pink-500','font-semibold');
+    b.classList.add('text-slate-400');
+  });
+  document.getElementById('page-' + page).classList.add('active');
+  const btn = document.querySelector(`[data-page="${page}"]`);
+  if (btn) {
+    btn.classList.remove('text-slate-400');
+    btn.classList.add('bg-pink-50','text-pink-500','font-semibold');
+  }
+  curPage = page;
+  window.scrollTo(0, 0);
+  if (page === 'playground') setupPlayground();
+  if (page === 'dashboard')  renderDashboard();
+}
+
+function switchTab(tab) {
+  curTab = tab;
+  document.querySelectorAll('#dash-tabs .tab-btn').forEach(b => {
+    const isSup  = b.id === 'tb-sup';
+    const active = (tab === 'supervised') === isSup;
+    b.querySelector('span')?.remove();
+    if (active) {
+      b.classList.replace('text-slate-400','text-pink-500');
+      const line = document.createElement('span');
+      line.className = 'absolute bottom-[-1px] left-0 right-0 h-[2px] bg-gradient-to-r from-pink-400 to-rose-300 rounded-full';
+      b.appendChild(line);
+    } else {
+      b.classList.replace('text-pink-500','text-slate-400');
+    }
+  });
+  document.getElementById('tab-supervised').classList.toggle('active',   tab === 'supervised');
+  document.getElementById('tab-unsupervised').classList.toggle('active', tab === 'unsupervised');
+  renderDashboard();
+}
+
+/* ── FETCH ───────────────────────────────────── */
+async function init() {
+  try {
+    const [s, u, o] = await Promise.all([
+      fetch('/api/model/supervised').then(r => r.json()).catch(() => ({})),
+      fetch('/api/model/unsupervised').then(r => r.json()).catch(() => ({})),
+      fetch('/api/overview').then(r => r.json()).catch(() => ({})),
+    ]);
+    supData = s; unsupData = u; overData = o;
+    renderHome();
+    if (curPage === 'playground') setupPlayground();
+    if (curPage === 'dashboard')  renderDashboard();
+  } catch(e) { console.error('init:', e); }
+}
+
+/* ── HOME ────────────────────────────────────── */
+function renderHome() {
+  const sm = overData?.summary || {};
+  const m  = supData?.model_a?.metrics || {};
+  animCount('h-rows',   sm.rows ?? 0);
+  animCount('h-kiyora', sm.kiyora_users ?? 0);
+  setText('h-share', sm.kiyora_share != null ? `${sm.kiyora_share}% ของทั้งหมด` : '');
+  setText('h-acc',   m.accuracy != null ? pct(m.accuracy) : '—');
+  setText('h-auc',   m.auc      != null ? m.auc.toFixed(3) : '—');
+  setText('h-model', supData?.model_a?.best_model ?? '');
+}
+
+function animCount(id, target, dur = 900) {
+  const el = document.getElementById(id);
+  if (!el || !target) { if (el) el.textContent = target || '—'; return; }
+  const t0 = Date.now();
+  const step = () => {
+    const p = Math.min((Date.now() - t0) / dur, 1);
+    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ── PLAYGROUND ──────────────────────────────── */
+function setupPlayground() {
+  const mb = supData?.model_b;
+  if (!mb) return;
+  const acneEl = document.getElementById('pg-acne');
+  acneEl.innerHTML = '<option value="">— เลือกระดับสิว —</option>';
+  Object.values(mb.acne_labels || {}).forEach(l =>
+    acneEl.insertAdjacentHTML('beforeend', `<option value="${esc(l)}">${esc(l)}</option>`)
+  );
+  const incEl = document.getElementById('pg-income');
+  incEl.innerHTML = '<option value="">— เลือกช่วงรายได้ —</option>';
+  Object.values(mb.income_labels || {}).forEach(l =>
+    incEl.insertAdjacentHTML('beforeend', `<option value="${esc(l)}">${esc(l)}</option>`)
+  );
+  buildSliders();
+}
+
+function buildSliders() {
+  const first = (unsupData?.kiyora_clusters || []).find(c => c.factor_scores?.length);
+  const el = document.getElementById('pg-sliders');
+  if (!first) { el.innerHTML = '<p class="text-slate-400 text-sm">ไม่พบข้อมูล Factor</p>'; return; }
+  el.innerHTML = first.factor_scores.map(f => {
+    const k = f.label.replace(/[^a-zA-Z0-9]/g,'_');
+    return `
+      <div>
+        <div class="flex justify-between mb-1.5">
+          <span class="text-[12px] text-slate-500">${esc(f.label)}</span>
+          <span class="text-[12px] font-bold text-pink-400" id="sv_${k}">3</span>
+        </div>
+        <input type="range" min="1" max="5" step="1" value="3"
+          id="sl_${k}" data-factor="${esc(f.label)}"
+          oninput="document.getElementById('sv_${k}').textContent=this.value">
+      </div>`;
+  }).join('');
+}
+
+function onProfile() { matchSegment(); }
+
+function matchSegment() {
+  const acne   = document.getElementById('pg-acne').value;
+  const income = document.getElementById('pg-income').value;
+  const segEmpty  = document.getElementById('seg-empty');
+  const segResult = document.getElementById('seg-result');
+  const segBreak  = document.getElementById('seg-breakdown');
+
+  if (!acne && !income) {
+    segEmpty.classList.remove('hidden'); segResult.classList.remove('show'); segBreak.classList.add('hidden');
+    return;
+  }
+  segEmpty.classList.add('hidden');
+
+  const segs = supData?.model_b?.segments || [];
+
+  if (acne && income) {
+    const seg = segs.find(s => s['Acne Level'] === acne && s['Income Group'] === income);
+    segResult.classList.add('show');
+    if (seg) {
+      const pv = seg['Kiyora %'];
+      setText('seg-main', `${pv.toFixed(1)}% ใช้ Kiyora`);
+      setText('seg-note', `กลุ่มนี้มี ${seg['Total']} คน · ใช้ Kiyora ${seg['Kiyora Users']} คน`);
+      document.getElementById('seg-bar').style.width = `${Math.min(pv,100)}%`;
+      const [bg, bd] = pv >= 30
+        ? ['bg-green-50','border-green-200']
+        : pv >= 15
+          ? ['bg-rose-50','border-rose-200']
+          : ['bg-amber-50','border-amber-200'];
+      segResult.className = `result-box show anim-up rounded-xl p-4 border ${bg} ${bd}`;
+    } else {
+      setText('seg-main', 'ไม่พบ Segment นี้ในข้อมูล');
+      setText('seg-note', 'จำนวนตัวอย่างในกลุ่มนี้น้อยเกินไป');
+      document.getElementById('seg-bar').style.width = '0%';
+    }
+  }
+
+  if (acne) {
+    const acneSegs = segs.filter(s => s['Acne Level'] === acne);
+    if (acneSegs.length) {
+      segBreak.classList.remove('hidden');
+      const maxPct = Math.max(...acneSegs.map(s => s['Kiyora %']), 1);
+      document.getElementById('seg-breakdown-bars').innerHTML = acneSegs
+        .sort((a,b) => b['Kiyora %'] - a['Kiyora %'])
+        .map(s => `
+          <div class="grid gap-2.5 items-center" style="grid-template-columns:minmax(90px,140px) 1fr 44px">
+            <div class="text-xs text-slate-500 truncate">${esc(s['Income Group'])}</div>
+            <div class="h-1.5 rounded-full bg-pink-100 overflow-hidden">
+              <div class="bar-fill h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-300" style="--w:${(s['Kiyora %']/maxPct*100).toFixed(1)}%"></div>
+            </div>
+            <div class="text-xs text-slate-400 text-right tabular-nums">${s['Kiyora %'].toFixed(1)}%</div>
+          </div>`).join('');
+    }
+  } else {
+    segBreak.classList.add('hidden');
+  }
+}
+
+function findCluster() {
+  const clusters = unsupData?.kiyora_clusters || [];
+  if (!clusters.length) return;
+  const acneNum = ACNE_TO_NUM[document.getElementById('pg-acne').value] ?? null;
+  const ratings = {};
+  document.querySelectorAll('[data-factor]').forEach(sl => {
+    ratings[sl.dataset.factor] = parseFloat(sl.value);
+  });
+  const allLabels = [];
+  clusters.forEach(c => (c.factor_scores||[]).forEach(f => {
+    if (!allLabels.includes(f.label)) allLabels.push(f.label);
+  }));
+  let best = null, bestDist = Infinity;
+  clusters.forEach(c => {
+    let d = 0;
+    allLabels.forEach(label => {
+      const cf = c.factor_scores?.find(f => f.label === label);
+      d += ((ratings[label] ?? 3) - (cf ? cf.value : 0)) ** 2;
     });
-    document.getElementById("refreshButton").addEventListener("click", () => loadData(true));
+    if (acneNum !== null && c.acne_level != null)
+      d += ((acneNum - c.acne_level) * 2) ** 2;
+    const dist = Math.sqrt(d);
+    if (dist < bestDist) { bestDist = dist; best = c; }
+  });
+  if (!best) return;
 
-    function setView(view) {
-      document.querySelectorAll("[data-view-button]").forEach((button) => {
-        button.setAttribute("aria-selected", String(button.dataset.viewButton === view));
-      });
-      document.querySelectorAll("[data-view]").forEach((panel) => {
-        panel.classList.toggle("active", panel.dataset.view === view);
-      });
-    }
+  const i    = clusters.indexOf(best);
+  const box  = document.getElementById('cluster-result');
+  box.className = `result-box show anim-up rounded-xl p-4 border ${CL_BG[i]||'bg-rose-50'} ${CL_BORD[i]||'border-rose-200'}`;
 
-    async function loadData(refresh = false) {
-      setStatus("Loading data", true);
-      try {
-        const response = await fetch(`/api/overview${refresh ? "?refresh=true" : ""}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        render(await response.json());
-        setStatus("Live", true);
-      } catch (error) {
-        setStatus("Unavailable", false);
-        renderEmpty(error.message);
-      }
-    }
+  const score = Math.max(0, Math.round(100 - bestDist * 10));
+  setText('cluster-main', best.name);
+  setText('cluster-note',
+    `ความใกล้เคียง ${score}% · ${best.size} คนในกลุ่มนี้` +
+    (acneNum !== null ? ` · ค่าเฉลี่ยระดับสิว ${best.acne_level?.toFixed(1)}` : ''));
 
-    function setStatus(text, ok) {
-      document.getElementById("statusText").textContent = text;
-      document.querySelector(".status-dot").style.background = ok ? "#0f9f8e" : "#d84f6a";
-    }
+  const grad = CL_GRAD[i] || CL_GRAD[0];
+  const desc = CLUSTER_DESC[best.id] || '';
+  const factors = (best.factor_scores || []).slice(0, 4);
+  document.getElementById('cluster-factors').innerHTML = `
+    <p class="text-xs text-slate-500 leading-relaxed py-2.5 border-t border-rose-100">${esc(desc)}</p>
+    ${factors.map(f => `
+      <div class="grid gap-2.5 items-center" style="grid-template-columns:minmax(90px,140px) 1fr 32px">
+        <div class="text-xs text-slate-500 truncate">${esc(f.label)}</div>
+        <div class="h-1.5 rounded-full bg-pink-100 overflow-hidden">
+          <div class="bar-fill h-full rounded-full bg-gradient-to-r ${grad}" style="--w:${(f.value/5*100).toFixed(0)}%"></div>
+        </div>
+        <div class="text-xs text-slate-400 text-right">${f.value.toFixed(1)}</div>
+      </div>`).join('')}`;
+}
 
-    function render(data) {
-      const summary = data.summary || {};
-      const sup = data.supervised || {};
-      const unsup = data.unsupervised || {};
+/* ── DASHBOARD ───────────────────────────────── */
+function renderDashboard() {
+  if (curTab === 'supervised') renderSupervised();
+  else                         renderUnsupervised();
+}
 
-      document.getElementById("sourceLabel").textContent = `Source: ${summary.source_label || data.source || "unknown"}`;
-      document.getElementById("metricRows").textContent = formatter.format(summary.rows || 0);
-      document.getElementById("metricColumns").textContent = `${formatter.format(summary.columns || 0)} columns`;
-      document.getElementById("metricKiyora").textContent = formatter.format(summary.kiyora_users || 0);
-      document.getElementById("metricKiyoraShare").textContent = `${summary.kiyora_share || 0}% of respondents`;
-      document.getElementById("metricFeatures").textContent = formatter.format(sup.feature_count || 0);
-      document.getElementById("metricClusters").textContent = formatter.format(unsup.cluster_count || 0);
-      document.getElementById("metricClusterFeatures").textContent = `${formatter.format(unsup.features || 0)} features`;
-      document.getElementById("supModelName").textContent = sup.best_model || "model";
+/* ── SUPERVISED ──────────────────────────────── */
+function renderSupervised() {
+  const el = document.getElementById('sup-content');
+  if (!supData?.available) {
+    el.innerHTML = `<p class="text-center text-slate-400 py-16">ไม่พบข้อมูล Supervised Model</p>`; return;
+  }
+  const ma  = supData.model_a || {};
+  const mb  = supData.model_b || {};
+  const m   = ma.metrics || {};
+  const cm  = ma.confusion_matrix || {};
+  const sum = supData.summary || {};
+  const bal = ma.class_balance || [];
+  const bMax= Math.max(...bal.map(b=>b.value),1);
 
-      const share = Number(summary.kiyora_share || 0);
-      const donut = document.getElementById("kiyoraDonut");
-      donut.style.setProperty("--p", share);
-      donut.dataset.label = `${share}%`;
+  el.innerHTML = `
+    <div class="mb-6">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/70 mb-2">Model A — Binary Classification</p>
+      <div class="serif-display text-[22px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-5 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        Kiyora vs Other Brand
+      </div>
+      <p class="text-slate-400 text-sm mt-1 pl-[15px]">
+        Best model: <strong class="text-slate-600">${esc(ma.best_model||'Random Forest')}</strong> ·
+        ${sum.total_samples||0} samples · Kiyora: ${sum.kiyora_users||0} คน (${(sum.kiyora_share||0).toFixed(1)}%)
+      </p>
+    </div>
 
-      renderBars("brandMix", sup.brand_mix || [], "count");
-      renderBars("classBalance", sup.class_balance || [], "count", ["#5867d8", "#0f9f8e"]);
-      renderBars("factorScores", sup.factor_scores || [], "score");
-      renderBars("featureImportance", sup.feature_importance || [], "score");
-      renderBars("targetBalance", sup.class_balance || [], "count", ["#5867d8", "#0f9f8e"]);
-      renderBars("silhouetteScores", (unsup.silhouette || []).map((row) => ({
-        label: `k=${row.k}`,
-        value: row.score
-      })), "score", ["#d99121"]);
-      renderBars("kiyoraClusterMix", unsup.kiyora_cluster_mix || [], "count", ["#0f9f8e"]);
-      renderClusterTable(unsup.clusters || []);
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      ${['Accuracy','F1 Score','CV F1','AUC','Precision'].map((lbl,i)=>{
+        const vals=[pct(m.accuracy),n3(m.f1),n3(m.cv_f1),n3(m.auc),pct(m.precision)];
+        const notes=['test set','test set','5-fold CV','ROC AUC','test set'];
+        return `<div class="glass rounded-xl p-4 transition-all hover:border-pink-200 hover:shadow-md hover:shadow-pink-50">
+          <p class="text-[11px] font-semibold tracking-[0.07em] uppercase text-slate-400 mb-2">${lbl}</p>
+          <p class="serif-display text-2xl font-[600] grad-text tracking-tight">${vals[i]}</p>
+          <p class="text-[11px] text-slate-300 mt-1">${notes[i]}</p>
+        </div>`;
+      }).join('')}
+    </div>
 
-      if (sup.model_metrics) {
-        renderModelMetrics(sup.model_metrics, sup.best_model);
-      }
-      if (sup.confusion_matrix) {
-        renderConfusionMatrix(sup.confusion_matrix);
-      }
-      if (sup.model_b && sup.model_b.segments) {
-        renderModelBSegments(sup.model_b.segments);
-      }
-      if (unsup.kiyora_clusters && unsup.kiyora_clusters.length) {
-        renderKiyoraClusters(unsup.kiyora_clusters);
-      }
-    }
+    <div class="grid lg:grid-cols-2 gap-5 mb-8">
+      <div class="glass rounded-2xl p-5">
+        <p class="font-semibold text-[14.5px] mb-1 flex items-center gap-2 text-slate-800">
+          <span class="text-base">🔢</span> Confusion Matrix
+        </p>
+        <p class="text-xs text-slate-400 mb-4">สีเขียว = ทำนายถูก · สีแดง = ทำนายผิด</p>
+        <div class="grid gap-1" style="grid-template-columns:auto 1fr 1fr">
+          <div class="p-3 rounded-xl bg-slate-50 text-slate-400 text-[11px] font-semibold text-center"></div>
+          <div class="p-3 rounded-xl bg-slate-50 text-slate-400 text-[11px] font-semibold text-center">Pred: Other</div>
+          <div class="p-3 rounded-xl bg-slate-50 text-slate-400 text-[11px] font-semibold text-center">Pred: Kiyora</div>
+          <div class="p-3 rounded-xl bg-slate-50 text-slate-400 text-[11px] font-semibold text-center">Act: Other</div>
+          <div class="p-3 rounded-xl bg-green-50 text-green-600 font-bold text-2xl text-center">${cm?.actual_other?.predicted_other??'—'}</div>
+          <div class="p-3 rounded-xl bg-red-50 text-red-500 text-xl text-center">${cm?.actual_other?.predicted_kiyora??'—'}</div>
+          <div class="p-3 rounded-xl bg-slate-50 text-slate-400 text-[11px] font-semibold text-center">Act: Kiyora</div>
+          <div class="p-3 rounded-xl bg-red-50 text-red-500 text-xl text-center">${cm?.actual_kiyora?.predicted_other??'—'}</div>
+          <div class="p-3 rounded-xl bg-green-50 text-green-600 font-bold text-2xl text-center">${cm?.actual_kiyora?.predicted_kiyora??'—'}</div>
+        </div>
+      </div>
 
-    function renderModelMetrics(metrics, bestModel) {
-      const panel = document.getElementById("modelMetrics");
-      panel.style.display = "";
-      document.getElementById("metricAccuracy").textContent = pct(metrics.accuracy);
-      document.getElementById("metricAuc").textContent = pct(metrics.auc);
-      document.getElementById("metricF1").textContent = pct(metrics.f1);
-      document.getElementById("metricCvF1").textContent = pct(metrics.cv_f1);
-      document.getElementById("metricBestModel").textContent = bestModel || "model";
-    }
+      <div class="glass rounded-2xl p-5">
+        <p class="font-semibold text-[14.5px] mb-4 flex items-center gap-2 text-slate-800">
+          <span class="text-base">⚖️</span> Class Distribution
+        </p>
+        <div class="space-y-3 mb-4">
+          ${bal.map((b,i)=>`
+            <div class="grid gap-2.5 items-center" style="grid-template-columns:minmax(88px,140px) 1fr 60px">
+              <div class="text-xs text-slate-600 truncate">${esc(b.label)}</div>
+              <div class="h-1.5 rounded-full bg-pink-100 overflow-hidden">
+                <div class="bar-fill h-full rounded-full ${i===0?'bg-gradient-to-r from-pink-400 to-rose-300':'bg-gradient-to-r from-amber-400 to-yellow-300'}" style="--w:${(b.value/bMax*100).toFixed(1)}%"></div>
+              </div>
+              <div class="text-xs text-slate-400 text-right tabular-nums">${b.value} คน</div>
+            </div>`).join('')}
+        </div>
+        <div class="pt-4 border-t border-rose-100">
+          <p class="text-[11px] font-semibold tracking-[0.07em] uppercase text-slate-400 mb-2">Recall</p>
+          <p class="serif-display text-3xl font-[600] grad-text">${pct(m.recall)}</p>
+          <p class="text-[11px] text-slate-400 mt-1">สัดส่วน Kiyora ที่ทำนายถูกต้อง</p>
+        </div>
+      </div>
+    </div>
 
-    function pct(v) {
-      return v != null ? (Number(v) * 100).toFixed(1) + "%" : "—";
-    }
+    <div class="mb-5">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/70 mb-2">Model B — Cross Segmentation</p>
+      <div class="serif-display text-[22px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-5 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        Acne Level × Income Group
+      </div>
+      <p class="text-slate-400 text-sm mt-1 pl-[15px]">
+        Acne: <strong class="text-slate-600">${esc(mb.best_acne_model||'—')}</strong> ·
+        Income: <strong class="text-slate-600">${esc(mb.best_income_model||'—')}</strong>
+      </p>
+    </div>
+    <div class="glass rounded-2xl overflow-hidden">${buildSegTable(mb.segments||[])}</div>`;
+}
 
-    function renderConfusionMatrix(cm) {
-      const oo = cm.actual_other?.predicted_other ?? 0;
-      const ok = cm.actual_other?.predicted_kiyora ?? 0;
-      const ko = cm.actual_kiyora?.predicted_other ?? 0;
-      const kk = cm.actual_kiyora?.predicted_kiyora ?? 0;
-      document.getElementById("confusionMatrix").innerHTML = `
-        <table class="cm-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Pred: Other</th>
-              <th>Pred: Kiyora</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>Actual: Other</th>
-              <td class="hit">${formatter.format(oo)}</td>
-              <td class="miss">${formatter.format(ok)}</td>
-            </tr>
-            <tr>
-              <th>Actual: Kiyora</th>
-              <td class="miss">${formatter.format(ko)}</td>
-              <td class="hit">${formatter.format(kk)}</td>
-            </tr>
-          </tbody>
-        </table>
-      `;
-    }
-
-    function renderModelBSegments(segments) {
-      document.getElementById("modelBPanel").style.display = "";
-      if (!segments.length) {
-        document.getElementById("modelBSegments").innerHTML = `<div class="empty">No segments</div>`;
-        return;
-      }
-      const rows = segments.slice(0, 10).map((s) => `
-        <tr>
-          <td>${escapeHtml(s["Acne Level"] || s.acne_level || "")}</td>
-          <td>${escapeHtml(s["Income Group"] || s.income_group || "")}</td>
-          <td>${formatter.format(s.Total || s.total || 0)}</td>
-          <td>${formatter.format(s["Kiyora Users"] || s.kiyora_users || 0)}</td>
-          <td>${s["Kiyora %"] || s["kiyora_%"] || 0}%</td>
-        </tr>
-      `).join("");
-      document.getElementById("modelBSegments").innerHTML = `
-        <table class="seg-table">
-          <thead>
-            <tr>
-              <th>Acne Level</th>
-              <th>Income Group</th>
-              <th>Total</th>
-              <th>Kiyora</th>
-              <th>Kiyora %</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
-    function renderKiyoraClusters(clusters) {
-      const panel = document.getElementById("kiyoraClustersPanel");
-      panel.style.display = "";
-      const clusterColors = ["#0f9f8e", "#d84f6a", "#5867d8"];
-      const cards = clusters.map((c, i) => {
-        const color = clusterColors[i % clusterColors.length];
-        const factors = (c.factor_scores || []).slice(0, 5);
-        const maxFactor = Math.max(...factors.map((f) => f.value), 1);
-        const barsHtml = factors.map((f) => `
-          <div class="cluster-card-bar-row">
-            <div class="cluster-card-bar-label" title="${escapeHtml(f.label)}">${escapeHtml(f.label)}</div>
-            <div class="track"><div class="bar" style="--w: ${(f.value / maxFactor * 100).toFixed(1)}%; --c: ${color}"></div></div>
-            <div class="bar-value" style="font-size:11px">${f.value.toFixed(1)}</div>
+function buildSegTable(segs) {
+  if (!segs.length) return `<p class="text-center text-slate-400 py-10">ไม่มีข้อมูล</p>`;
+  const sorted = segs.slice().sort((a,b)=>b['Kiyora %']-a['Kiyora %']);
+  return `<table class="w-full border-collapse text-sm">
+    <thead><tr class="bg-rose-50/60 border-b border-rose-100">
+      <th class="px-4 py-3 text-left text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400">ระดับสิว</th>
+      <th class="px-4 py-3 text-left text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400">ช่วงรายได้</th>
+      <th class="px-4 py-3 text-center text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400">ทั้งหมด</th>
+      <th class="px-4 py-3 text-center text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400">ใช้ Kiyora</th>
+      <th class="px-4 py-3 text-left text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-400">% Kiyora</th>
+    </tr></thead>
+    <tbody>${sorted.map(s=>`
+      <tr class="border-b border-rose-50 hover:bg-rose-50/40 transition-colors">
+        <td class="px-4 py-3 text-slate-700">${esc(s['Acne Level'])}</td>
+        <td class="px-4 py-3 text-slate-500">${esc(s['Income Group'])}</td>
+        <td class="px-4 py-3 text-center text-slate-500">${s['Total']}</td>
+        <td class="px-4 py-3 text-center font-semibold text-rose-500">${s['Kiyora Users']}</td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-2.5">
+            <div class="flex-1 h-1.5 rounded-full bg-pink-100 overflow-hidden">
+              <div class="bar-fill h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-300" style="--w:${s['Kiyora %']}%"></div>
+            </div>
+            <span class="text-xs font-bold text-rose-500 min-w-[42px] text-right tabular-nums">${s['Kiyora %'].toFixed(1)}%</span>
           </div>
-        `).join("");
-        return `
-          <div class="cluster-card">
-            <div class="cluster-card-id">Cluster ${c.id}</div>
-            <div class="cluster-card-title">${escapeHtml(c.name)}</div>
-            <div class="cluster-card-stat">n = ${formatter.format(c.size)} users</div>
-            ${c.top_factor ? `<div class="cluster-card-stat">Top factor: ${escapeHtml(c.top_factor)}</div>` : ""}
-            ${factors.length ? `<div class="cluster-card-bars">${barsHtml}</div>` : ""}
-          </div>
-        `;
-      }).join("");
-      document.getElementById("kiyoraClusters").innerHTML = `<div class="cluster-cards">${cards}</div>`;
-    }
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
 
-    function renderBars(id, rows, mode = "count", palette = colors) {
-      const node = document.getElementById(id);
-      if (!rows.length) {
-        node.innerHTML = `<div class="empty">No data</div>`;
-        return;
-      }
-      const max = Math.max(...rows.map((row) => Number(row.value) || 0), 1);
-      node.innerHTML = rows.map((row, index) => {
-        const value = Number(row.value) || 0;
-        const width = Math.max((value / max) * 100, value > 0 ? 2 : 0);
-        const display = mode === "score" ? value.toFixed(value < 1 ? 3 : 2) : formatter.format(value);
-        const color = palette[index % palette.length];
-        return `
-          <div class="bar-row">
-            <div class="bar-label" title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</div>
-            <div class="track"><div class="bar" style="--w: ${width}%; --c: ${color}"></div></div>
-            <div class="bar-value">${display}</div>
-          </div>
-        `;
-      }).join("");
-    }
+/* ── UNSUPERVISED ────────────────────────────── */
+function renderUnsupervised() {
+  const el = document.getElementById('unsup-content');
+  if (!unsupData?.available) {
+    el.innerHTML = `<p class="text-center text-slate-400 py-16">ไม่พบข้อมูล Unsupervised Model</p>`; return;
+  }
+  const clusters = unsupData.kiyora_clusters || [];
+  const silRows  = overData?.unsupervised?.silhouette || [];
 
-    function renderClusterTable(rows) {
-      const node = document.getElementById("clusterTable");
-      if (!rows.length) {
-        node.innerHTML = `<div class="empty">No clusters</div>`;
-        return;
-      }
-      node.innerHTML = `
-        <table class="cluster-table">
-          <thead>
-            <tr>
-              <th>Cluster</th>
-              <th>Size</th>
-              <th>Kiyora</th>
-              <th>Top brand</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map((row) => `
-              <tr>
-                <td><span class="tag">Cluster ${row.id}</span></td>
-                <td>${formatter.format(row.size)} <span class="panel-kicker">${row.share}%</span></td>
-                <td>${row.kiyora_share}%</td>
-                <td>${escapeHtml(row.top_brand || "Unknown")}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-    }
+  const cCards = clusters.map((c,i) => `
+    <div class="glass rounded-2xl p-5 border-t-2 ${CL_BORDER[i]||'border-t-rose-300'} transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:shadow-pink-50">
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-widest uppercase ${CL_COLORS[i]||'text-sky-500'} bg-white border border-rose-100 mb-2">Cluster ${c.id}</span>
+      <p class="serif-display font-[600] text-[16px] mb-0.5 text-slate-800">${esc(c.name)}</p>
+      <p class="text-xs text-slate-400 mb-3">${c.size} คน</p>
+      <div class="space-y-2 text-[13px]">
+        <div class="flex justify-between"><span class="text-slate-400">ปัจจัยหลัก</span><span class="font-semibold text-right text-slate-700">${esc(c.top_factor||'—')}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Acne avg</span><span class="font-semibold text-slate-700">${c.acne_level!=null?c.acne_level.toFixed(2):'—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Skin Type avg</span><span class="font-semibold text-slate-700">${c.skin_type!=null?c.skin_type.toFixed(2):'—'}</span></div>
+      </div>
+      <p class="text-[12px] text-slate-400 leading-relaxed mt-3 pt-3 border-t border-rose-100">${esc(CLUSTER_DESC[c.id]||'')}</p>
+    </div>`).join('');
 
-    function renderEmpty(message) {
-      ["brandMix", "classBalance", "factorScores", "clusterTable", "featureImportance", "targetBalance", "silhouetteScores", "kiyoraClusterMix"].forEach((id) => {
-        document.getElementById(id).innerHTML = `<div class="empty">${escapeHtml(message)}</div>`;
-      });
-    }
+  const withF  = clusters.filter(c => c.factor_scores?.length);
+  const fCards = withF.map((c,i) => `
+    <div class="glass rounded-2xl p-5">
+      <p class="serif-display font-[600] text-[15px] mb-4 ${CL_COLORS[i]||'text-sky-500'}">${esc(c.name)}</p>
+      <div class="space-y-2.5">
+        ${c.factor_scores.map(f=>`
+          <div class="grid gap-2.5 items-center" style="grid-template-columns:minmax(88px,150px) 1fr 32px">
+            <div class="text-xs text-slate-500 truncate">${esc(f.label)}</div>
+            <div class="h-1.5 rounded-full bg-pink-100 overflow-hidden">
+              <div class="bar-fill h-full rounded-full bg-gradient-to-r ${CL_GRAD[i]||CL_GRAD[0]}" style="--w:${(f.value/5*100).toFixed(1)}%"></div>
+            </div>
+            <div class="text-xs text-slate-400 text-right">${f.value.toFixed(1)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+  const silHtml = buildSilhouette(silRows);
 
-    loadData();
-  </script>
+  el.innerHTML = `
+    <div class="mb-6">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/70 mb-2">K-Means Clustering · k = ${clusters.length}</p>
+      <div class="serif-display text-[22px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-5 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        กลุ่มผู้ใช้ Kiyora
+      </div>
+      <p class="text-slate-400 text-sm mt-1 pl-[15px]">แบ่งผู้ใช้ Kiyora 19 คนออกเป็น ${clusters.length} กลุ่มตามพฤติกรรมและปัญหาผิว</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mb-8">${cCards}</div>
+
+    <div class="mb-5">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/70 mb-2">Factor Profiles per Cluster</p>
+      <div class="serif-display text-[22px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-5 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        คะแนนปัจจัยการเลือกซื้อ
+      </div>
+      <p class="text-slate-400 text-sm mt-1 pl-[15px]">ค่าเฉลี่ย 1–5 ของแต่ละปัจจัย (Passive มี 0 เพราะไม่ได้ใช้ Cleansing Water)</p>
+    </div>
+    <div class="grid ${withF.length>=3?'md:grid-cols-3':'md:grid-cols-2'} gap-4 mb-8">${fCards}</div>
+
+    ${silHtml ? `
+    <div class="mb-5">
+      <p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-pink-400/70 mb-2">Silhouette Score</p>
+      <div class="serif-display text-[22px] font-[500] tracking-tight flex items-center gap-3 text-slate-800">
+        <span class="block w-[3px] h-5 rounded-full bg-gradient-to-b from-pink-400 to-rose-400"></span>
+        ความเหมาะสมของจำนวน Cluster
+      </div>
+    </div>
+    <div class="glass rounded-2xl p-6">${silHtml}</div>` : ''}`;
+}
+
+function buildSilhouette(rows) {
+  if (!rows.length) return '';
+  const mx   = Math.max(...rows.map(r=>r.score),.001);
+  const best = rows.reduce((b,r)=>r.score>b.score?r:b, rows[0]);
+  const bars = rows.map(r => {
+    const h  = Math.max(Math.round(r.score/mx*72),4);
+    const ok = r.k === best.k;
+    return `
+      <div class="flex flex-col items-center gap-1.5">
+        <span class="text-[10px] ${ok?'text-pink-500 font-bold':'text-slate-400'}">${r.score.toFixed(3)}</span>
+        <div class="w-full rounded-t-md ${ok?'bg-gradient-to-t from-pink-400 to-rose-300 shadow-sm shadow-pink-200/50':'bg-rose-100'}" style="height:${h}px"></div>
+        <span class="text-[11px] ${ok?'text-pink-500 font-bold':'text-slate-400'}">k=${r.k}</span>
+      </div>`;
+  }).join('');
+  return `
+    <div class="flex items-baseline gap-1.5 mb-1">
+      <p class="serif-display font-[600] text-[15px] text-slate-800">Best k = <span class="text-rose-500">${best.k}</span></p>
+      <span class="text-xs text-slate-400 ml-1">score: ${best.score.toFixed(3)}</span>
+    </div>
+    <div class="flex items-end gap-2 h-24 mt-4">${bars}</div>`;
+}
+
+/* ── HELPERS ─────────────────────────────────── */
+function pct(v)    { return v!=null?(v*100).toFixed(1)+'%':'—'; }
+function n3(v)     { return v!=null?Number(v).toFixed(3):'—'; }
+function setText(id,t){ const e=document.getElementById(id); if(e) e.textContent=t; }
+function esc(s)    {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── BOOT ────────────────────────────────────── */
+document.querySelector('[data-page="home"]')
+  ?.classList.add('bg-pink-50','text-pink-500','font-semibold');
+document.querySelector('[data-page="home"]')
+  ?.classList.remove('text-slate-400');
+
+init();
+</script>
 </body>
 </html>

@@ -51,7 +51,28 @@ CLUSTER_NAMES = {
 }
 
 
+def _fetch_model_result(result_type: str) -> dict | None:
+    try:
+        response = (
+            get_supabase()
+            .table("model_results")
+            .select("payload")
+            .eq("result_type", result_type)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        if rows:
+            return rows[0].get("payload")
+    except Exception:
+        pass
+    return None
+
+
 def _load_sup_results() -> dict | None:
+    remote = _fetch_model_result("sup_results")
+    if remote:
+        return remote
     path = MODEL_DIR / "sup_results.json"
     if not path.exists():
         return None
@@ -63,6 +84,15 @@ def _load_sup_results() -> dict | None:
 
 
 def _load_cluster_profile() -> "pd.DataFrame | None":
+    remote = _fetch_model_result("cluster_profile")
+    if remote and isinstance(remote.get("profiles"), list):
+        try:
+            df = pd.DataFrame(remote["profiles"])
+            if "cluster" in df.columns:
+                df = df.set_index("cluster")
+            return df
+        except Exception:
+            pass
     for path in (MODEL_DIR / "kiyora_cluster_profile.csv", ROOT_DIR / "kiyora_cluster_profile.csv"):
         if path.exists():
             try:
@@ -73,6 +103,12 @@ def _load_cluster_profile() -> "pd.DataFrame | None":
 
 
 def _load_clustered_df() -> "pd.DataFrame | None":
+    remote = _fetch_model_result("clustered")
+    if remote and isinstance(remote.get("rows"), list):
+        try:
+            return pd.DataFrame(remote["rows"])
+        except Exception:
+            pass
     for path in (MODEL_DIR / "kiyora_clustered.csv", ROOT_DIR / "kiyora_clustered.csv"):
         if path.exists():
             try:
