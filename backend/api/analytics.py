@@ -358,6 +358,10 @@ def _build_kiyora_clusters() -> list[dict[str, Any]] | None:
 
 
 def get_supervised_results() -> dict[str, Any]:
+    remote = _fetch_model_result("sup_results")
+    if remote:
+        remote["available"] = True
+        return remote
     path = MODEL_DIR / "sup_results.json"
     if not path.exists():
         return {"available": False}
