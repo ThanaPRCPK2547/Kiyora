@@ -1,15 +1,3 @@
-"""
-AIE323 – Kiyora Clean: Supervised Learning Pipeline (Merged)
-
-Model A : Binary Classification – ทำนายว่าใครเป็นผู้ใช้ Kiyora
-          Target: target_kiyora (1 = Kiyora, 0 = Other Brand)
-
-Model B : Cross-Analysis – Acne Level × Income Group → Segment
-          Model B1: ทำนาย Acne Level   (4 classes)
-          Model B2: ทำนาย Income Group (3 classes)
-          Cross   : รวมผลทั้ง 2 โมเดล → segment 12 ช่อง
-"""
-
 import json
 import os
 import sys
@@ -312,9 +300,7 @@ print(f"\n[Model A Best]      {best_a}")
 print(f"[Model B1 Best]     {best_acne}")
 print(f"[Model B2 Best]     {best_income}")
 
-# =====================================================
 # SAVE RESULTS TO JSON
-# =====================================================
 MODEL_DIR = Path(__file__).resolve().parent
 
 # Model A Results
